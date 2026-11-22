@@ -200,9 +200,10 @@ def record_run(conn: db.Connection, *, pass_name: str, source: str, scope_key: s
 
 
 def rescore(conn: db.Connection, context=None) -> int:
-    """Refresh every stored score, coordinate, category and flag, including historical editions."""
+    """Refresh every stored score, coordinate, category, flag, country and region, including historical editions."""
     from .categories import categorize, flags, pack
     from .geo import geocode
+    from .regions import country_name, resolve
     from .score import Context, VERSION, score_event
 
     rows = conn.fetchall("SELECT key, data FROM events")
@@ -218,10 +219,13 @@ def rescore(conn: db.Connection, context=None) -> int:
         result = score_event(event, context)
         lat, lon = geocode(event.location, event.country, event.format)
         cats, event_flags = categorize(event), flags(event)
-        data = {**db.loads(row["data"]), "categories": cats, "flags": event_flags}
+        code, region = resolve(event)
+        data = {**db.loads(row["data"]), "categories": cats, "flags": event_flags,
+                "country_code": code, "region": region, "country_name": country_name(code)}
         updates.append((result["score"], result["score_confidence"], db.dumps(result["score_detail"]),
-                        VERSION, lat, lon, pack(cats), pack(event_flags), db.dumps(data), row["key"]))
+                        VERSION, lat, lon, pack(cats), pack(event_flags), code, region, db.dumps(data), row["key"]))
     conn.executemany("""UPDATE events SET score = ?, score_conf = ?, score_detail = CAST(? AS JSONTYPE),
-                        score_version = ?, lat = ?, lon = ?, cats = ?, flags = ?, data = CAST(? AS JSONTYPE)
+                        score_version = ?, lat = ?, lon = ?, cats = ?, flags = ?, country_code = ?, region = ?,
+                        data = CAST(? AS JSONTYPE)
                         WHERE key = ?""", updates)
     return len(updates)

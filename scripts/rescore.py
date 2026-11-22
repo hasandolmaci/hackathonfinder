@@ -55,6 +55,19 @@ def taxonomy_report(conn, sample=15):
         print(f"{row['title']} | {','.join(unpack(row['cats'])) or '-'} | {','.join(unpack(row['flags'])) or '-'}")
 
 
+def region_report(conn):
+    """Region and country counts, and the share of in-person/hybrid active events that have a country."""
+    rows = conn.fetchall("SELECT country_code, region, format FROM events WHERE status = 'active' AND kind = 'hackathon'")
+    physical = [r for r in rows if r["format"] in {"in-person", "hybrid"}]
+    covered = sum(r["country_code"] is not None for r in physical)
+    print(f"\nCountry coverage: {covered}/{len(physical)} active in-person/hybrid hackathons ({covered / max(1, len(physical)):.0%})")
+    for name, field in (("region", "region"), ("country", "country_code")):
+        counter = defaultdict(int)
+        for row in rows:
+            counter[row[field] or "-"] += 1
+        print(f"By {name}:", ", ".join(f"{k} {v}" for k, v in sorted(counter.items(), key=lambda kv: -kv[1])[:25]))
+
+
 def print_row(row):
     detail = db.loads(row['score_detail']) if row['score_detail'] else {}
     reasons = '; '.join(detail.get('reasons', []))
@@ -72,6 +85,7 @@ def main():
         print('\nAFTER')
         report(conn)
         taxonomy_report(conn)
+        region_report(conn)
     db.close()
 
 

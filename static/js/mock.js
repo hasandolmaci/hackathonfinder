@@ -1,4 +1,4 @@
-import {sourceInfo,filterEvents,sortEvents,getJSON,categoryNames,typeNames} from './shared.js';
+import {sourceInfo,filterEvents,sortEvents,getJSON,categoryNames,typeNames,regionNames} from './shared.js';
 export const isMock = new URLSearchParams(location.search).get('mock')==='1';
 const titles=['Open Source Weekend','Agents for Good','Build the Next Internet','Climate Code Collective','Midnight Makers','Future of Finance','The Local AI Hack','Campus Builders','Creative Machines','Hack the Everyday','Better Cities Buildathon','Zero to One Weekend','Small Tools, Big Ideas','HealthTech Hack','The Open Data Challenge','Reimagine Learning','Build Without Borders','Weekend on the Web','The Accessibility Sprint','Green Grid Hack','AI Studio Weekend','Hardware & Humans','The Community Build','Next Chapter Hack','Pixel Planet Jam','One Button Game Jam','Cozy Worlds Jam','Tiny Adventure Jam','Signal Capture CTF','Midnight Security CTF','Flag Hunters CTF','Codebreakers CTF','Forecast the Future','Data for Nature','Algorithm Arena','Vision Challenge','Ideas for Tomorrow','Future Cities Ideathon','Circular Economy Pitch','Moonshot Ideas'];
 const now=Date.now(), hour=36e5;
@@ -14,6 +14,7 @@ const places=[
     {name:'Bengaluru',country:'India',country_code:'IN',lat:12.9716,lon:77.5946,population:8443675},
     {name:'São Paulo',country:'Brazil',country_code:'BR',lat:-23.5505,lon:-46.6333,population:12330000}
 ];
+const regionOf={NL:'europe',DE:'europe',GB:'europe',FR:'europe',US:'north_america',IN:'asia',BR:'latin_america'};
 const weights={hackathon:[30,20,20,20,10],ideathon:[30,20,20,20,10],game_jam:[25,35,10,15,15],ctf:[40,25,10,10,15],coding_competition:[25,20,40,0,15]};
 const dimIds=['organizer','community','rewards','support','accessibility'];
 const methodology={version:'demo-1',dimensions:dimIds.map((id,i)=>({id,name:['Organizer','Community','Rewards','Support','Accessibility'][i],weight_by_kind:Object.fromEntries(Object.entries(weights).map(([k,w])=>[k,w[i]])),inputs:[['Reviewed organizer reputation','Verified, featured, MLH membership','Recurring editions'],['Registrations, guests, RSVPs, teams','Source and kind percentiles'],['Cash prizes in USD, logarithmic scale','Capped non-cash rewards'],['Sponsors, mentors, travel support','Hiring, food and swag'],['Free entry, open eligibility','Online or hybrid access']][i]})),tiers:[{id:'great',name:'Great',min:80,max:100},{id:'good',name:'Good',min:60,max:79},{id:'fair',name:'Fair',min:40,max:59},{id:'low',name:'Low',min:0,max:39},{id:'unknown',name:'Unknown',range:'Not enough info'}],reputation_tiers:{A:['ETHGlobal (sample)','MLH (sample)'],B:['Community organizers (sample)']},notes:['Demo formula and sample reputation entries; live methodology comes from the API.','Missing data is shrunk toward a source/kind prior, never scored as zero.','Evidence below 30 produces no numeric score. Confidence reflects observed evidence.','Duplicate participant counts are never summed. Dates and location do not affect the score.']};
@@ -21,6 +22,7 @@ for(const [i,e] of events.entries()){
     const p=places[Math.floor(i/4)%places.length],score=i%7===0?null:[88,72,51,32][(i+Math.floor(i/4))%4];
     Object.assign(e,{score,score_tier:score==null?'unknown':score>=80?'great':score>=60?'good':score>=40?'fair':'low',score_confidence:score==null||i%3===0?'low':i%3===1?'high':'medium',lat:e.format==='online'?null:p.lat+(i%3)*0.08,lon:e.format==='online'?null:p.lon,first_seen:new Date(now-i*hour).toISOString(),score_detail:{dims:Object.fromEntries(dimIds.map((key,j)=>[key,Math.min(100,(score??45)+j*3-6)])),weights:Object.fromEntries(dimIds.map((key,j)=>[key,weights[e.kind][j]])),evidence:score==null?20:i%3===0?35:i%3===1?90:65,reasons:['Recurring community event','Published prizes and participation figures','Open to independent builders'],missing:['Travel support','Mentor details'],version:'demo-1'}});
     if(e.format!=='online')e.location=`${p.name}, ${p.country}`;
+    Object.assign(e,{country_code:e.format==='online'?null:p.country_code,country_name:e.format==='online'?null:p.country,region:e.format==='online'?'online':regionOf[p.country_code]});
     e.categories=eventCats[i];
     e.flags=[i%2===0&&'student',i%3===0&&'beginner',e.prize_usd>0&&'cash_prize',i%5===1&&'travel',e.format!=='online'&&i%4===3&&'weekend',i<8&&'new'].filter(Boolean);
 }
@@ -49,10 +51,15 @@ export async function api(path, options = {}) {
         const fold=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
         return places.filter(p=>fold(p.name).startsWith(fold(u.searchParams.get('q')||''))).sort((a,b)=>b.population-a.population).slice(0,Number(u.searchParams.get('limit'))||8);
     }
-    const mockFilter=(list,params)=>{const cats=(params.get('categories')||'').split(',').filter(Boolean),types=(params.get('types')||'').split(',').filter(Boolean);return list.filter(e=>(!cats.length||cats.some(c=>e.categories.includes(c)))&&types.every(t=>e.flags.includes(t)));};
+    const mockFilter=(list,params)=>{const cats=(params.get('categories')||'').split(',').filter(Boolean),types=(params.get('types')||'').split(',').filter(Boolean),regs=(params.get('region')||'').split(',').filter(Boolean),codes=(params.get('country')||'').toUpperCase().split(',').filter(Boolean);return list.filter(e=>(!cats.length||cats.some(c=>e.categories.includes(c)))&&types.every(t=>e.flags.includes(t))&&(!regs.length||regs.includes(e.region))&&(!codes.length||codes.includes(e.country_code)));};
     if (u.pathname === '/api/categories') {
         const base=filterEvents(events,{kinds:(u.searchParams.get('kinds')??'hackathon').split(','),days:u.searchParams.get('days')||'all',format:'',q:''});
         return {categories:Object.entries(categoryNames).map(([id,name])=>({id,name,count:base.filter(e=>e.categories.includes(id)).length})).sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name)),types:Object.entries(typeNames).map(([id,name])=>({id,name,count:base.filter(e=>e.flags.includes(id)).length}))};
+    }
+    if (u.pathname === '/api/regions') {
+        const base=filterEvents(events,{kinds:(u.searchParams.get('kinds')??'hackathon').split(','),days:u.searchParams.get('days')||'all',format:u.searchParams.get('format')||'',q:''}),by=new Map();
+        for(const e of base)if(e.country_code)by.set(e.country_code,{code:e.country_code,name:e.country_name,region:e.region,count:(by.get(e.country_code)?.count||0)+1});
+        return {regions:Object.entries(regionNames).map(([id,name])=>({id,name,count:base.filter(e=>e.region===id).length})),countries:[...by.values()].sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name))};
     }
     if (u.pathname !== '/api/hackathons') throw new Error('Unknown mock API endpoint');
     const state = {

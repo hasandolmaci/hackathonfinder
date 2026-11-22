@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Hackathon Nederland - Aankomende hackathons</title>
+    <link>https://netherlandshackathons.com/</link>
+    <description>Elke aankomende hackathon op Hackathon Nederland - data, locatie, prijzen en een link om je aan te melden. Dagelijks bijgewerkt.</description>
+    <language>nl-nl</language>
+    <lastBuildDate>Sun, 22 Nov 2026 19:34:52 GMT</lastBuildDate>
+    <ttl>60</ttl>
+    <atom:link href="https://netherlandshackathons.com/rss.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Amsterdam Circularity Hackathon</title>
+      <link>https://netherlandshackathons.com/events/amsterdam-circularity-hackathon</link>
+      <guid isPermaLink="true">https://netherlandshackathons.com/events/amsterdam-circularity-hackathon</guid>
+      <pubDate>Fri, 20 Nov 2026 00:00:00 GMT</pubDate>
+      <description>20–22 nov 2026 | Amsterdam | Georganiseerd door CRCL FEST | Prijs: Gratis</description>
+    </item>
+    <item>
+      <title>Hackathon for Good: AI by Women, for Women</title>
+      <link>https://netherlandshackathons.com/events/hackathon-for-good-ai-by-women-for-women</link>
+      <guid isPermaLink="true">https://netherlandshackathons.com/events/hackathon-for-good-ai-by-women-for-women</guid>
+      <pubDate>Sat, 28 Nov 2026 00:00:00 GMT</pubDate>
+      <description>28 nov 2026 | Amsterdam | Georganiseerd door Equals | Prijs: Gratis</description>
+    </item>
+    <item>
+      <title>Maverickz Impacthon Trees for All</title>
+      <link>https://netherlandshackathons.com/events/tickets-maverickz-impacthon-trees-for-all</link>
+      <guid isPermaLink="true">https://netherlandshackathons.com/events/tickets-maverickz-impacthon-trees-for-all</guid</channel></rss>

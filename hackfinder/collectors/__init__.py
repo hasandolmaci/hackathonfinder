@@ -55,6 +55,8 @@ COLLECTOR_IDS = [
     "dorahacks", "hackquest", "encodeclub",
     # general event platforms
     "luma", "meetup", "eventbrite",
+    # regional
+    "netherlandshackathons",
 ]
 
 

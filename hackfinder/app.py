@@ -19,6 +19,7 @@ from fastapi.staticfiles import StaticFiles
 
 from . import db
 from .categories import CATEGORIES, NEW_DAYS, TYPES, categorize, flags, unpack
+from .regions import COUNTRIES, REGIONS, country_name, resolve
 
 ROOT = Path(__file__).resolve().parent.parent
 STATIC = ROOT / "static"
@@ -125,6 +126,14 @@ def _taxonomy(row: dict, now: datetime) -> tuple[list, list]:
     return cats, found
 
 
+def _place(row: dict) -> tuple[str | None, str | None]:
+    """(country_code, region) from the indexed columns (computed on the fly before the first rescore)."""
+    if row.get("region") is None and row.get("country_code") is None:
+        from .models import Event
+        return resolve(Event.model_validate(db.loads(row["data"])), use_geo=False)
+    return row["country_code"], row["region"]
+
+
 def _foryou(row: dict, interests: tuple) -> float:
     hits = sum(1 for i in interests if f",{i}," in (row["cats"] or ","))
     return (45 if row["score"] is None else row["score"]) + 12 * min(hits, 2)
@@ -132,7 +141,8 @@ def _foryou(row: dict, interests: tuple) -> float:
 
 def _listing(kinds: tuple, format: str | None, q: str, days: str, sort: str, order: str,
              page: int, per_page: int, min_score=None, lat=None, lon=None, radius_km=100,
-             categories: tuple = (), types: tuple = (), interests: tuple = ()) -> dict:
+             categories: tuple = (), types: tuple = (), interests: tuple = (),
+             regions: tuple = (), countries: tuple = ()) -> dict:
     now = utcnow()
     where, params = _upcoming_where(now, list(kinds))
     if categories:
@@ -143,6 +153,12 @@ def _listing(kinds: tuple, format: str | None, q: str, days: str, sort: str, ord
             params.append(_new_cutoff(now))
         else:
             where += " AND " + _has("flags", kind_flag)
+    if regions:
+        where += f" AND region IN ({', '.join('?' for _ in regions)})"
+        params.extend(regions)
+    if countries:
+        where += f" AND country_code IN ({', '.join('?' for _ in countries)})"
+        params.extend(countries)
     if format:
         where += " AND format = ?"
         params.append(format)
@@ -187,7 +203,7 @@ def _listing(kinds: tuple, format: str | None, q: str, days: str, sort: str, ord
         order_params = []
     with db.connect() as conn:
         total = int(conn.fetchone(f"SELECT COUNT(*) AS n FROM events WHERE {where}", params)["n"])
-        select = "data, first_seen, last_seen, score, score_conf, score_detail, lat, lon, cats, flags, start_at"
+        select = "data, first_seen, last_seen, score, score_conf, score_detail, lat, lon, cats, flags, start_at, country_code, region"
         if sort == "foryou" and lat is None:
             rows = conn.fetchall(f"SELECT {select} FROM events WHERE {where}", params)
             rows.sort(key=lambda r: (-_foryou(r, interests), r["start_at"] or "9", r["first_seen"]))
@@ -216,6 +232,8 @@ def _listing(kinds: tuple, format: str | None, q: str, days: str, sort: str, ord
                  "score_confidence": row["score_conf"] or "low", "score_detail": db.loads(row["score_detail"]),
                  "lat": row["lat"], "lon": row["lon"]}
         event["categories"], event["flags"] = _taxonomy(row, now)
+        event["country_code"], event["region"] = _place(row)
+        event["country_name"] = country_name(event["country_code"])
         # Extraction-only source text is never part of the public listing.
         event["signals"] = {k: v for k, v in event.get("signals", {}).items() if k != "text"}
         if lat is not None:
@@ -236,7 +254,8 @@ def hackathons(response: Response, kinds: str = "hackathon",
                lat: float | None = Query(None, ge=-90, le=90),
                lon: float | None = Query(None, ge=-180, le=180),
                radius_km: float = Query(100, gt=0, le=2000),
-               categories: str = "", types: str = "", interests: str = ""):
+               categories: str = "", types: str = "", interests: str = "",
+               region: str = "", country: str = ""):
     response.headers["Cache-Control"] = CDN_CACHE
     if (lat is None) != (lon is None) or (sort == "distance" and lat is None):
         raise HTTPException(422, "Distance search requires both lat and lon")
@@ -244,10 +263,12 @@ def hackathons(response: Response, kinds: str = "hackathon",
     order = order or ("desc" if sort in {"score", "new", "foryou"} else "asc")
     selected = tuple(sorted({kind.strip() for kind in kinds.split(",") if kind.strip()} - HIDDEN_KINDS))
     cats, kinds_on, likes = _ids(categories, CATEGORIES), _ids(types, TYPES), _ids(interests, CATEGORIES)
+    regs = _ids(region, REGIONS)
+    codes = tuple(sorted({c.strip().upper() for c in country.split(",") if c.strip().upper() in COUNTRIES}))
     key = ("hackathons", selected, format, q, days, sort, order, page, per_page, min_score, lat, lon, radius_km,
-           cats, kinds_on, likes if sort == "foryou" else ())
+           cats, kinds_on, likes if sort == "foryou" else (), regs, codes)
     return _cached(key, lambda: _listing(selected, format, q, days, sort, order, page, per_page, min_score, lat, lon,
-                                         radius_km, cats, kinds_on, likes))
+                                         radius_km, cats, kinds_on, likes, regs, codes))
 
 
 def _category_counts(kinds: tuple, days: str) -> dict:
@@ -276,6 +297,38 @@ def category_list(response: Response, kinds: str = "hackathon", days: str = Quer
     response.headers["Cache-Control"] = CDN_CACHE
     selected = tuple(sorted({kind.strip() for kind in kinds.split(",") if kind.strip()} - HIDDEN_KINDS))
     return _cached(("categories", selected, days), lambda: _category_counts(selected, days))
+
+
+def _region_counts(kinds: tuple, days: str, format: str | None = None) -> dict:
+    now = utcnow()
+    where, params = _upcoming_where(now, list(kinds))
+    if days != "all":
+        where += " AND (start_at IS NULL OR start_at <= ?)"
+        params.append(_iso(now + timedelta(days=int(days))))
+    if format:
+        where += " AND format = ?"
+        params.append(format)
+    with db.connect() as conn:
+        rows = conn.fetchall(f"SELECT data, country_code, region FROM events WHERE {where}", params)
+    regions, countries = dict.fromkeys(REGIONS, 0), {}
+    for row in rows:
+        code, region = _place(row)
+        if region in regions:
+            regions[region] += 1
+        if code in COUNTRIES:
+            countries[code] = countries.get(code, 0) + 1
+    ranked = sorted(countries, key=lambda c: (-countries[c], COUNTRIES[c][0]))
+    return {"regions": [{"id": r, "name": name, "count": regions[r]} for r, name in REGIONS.items()],
+            "countries": [{"code": c, "name": COUNTRIES[c][0], "region": COUNTRIES[c][1], "count": countries[c]}
+                          for c in ranked]}
+
+
+@app.get("/api/regions")
+def region_list(response: Response, kinds: str = "hackathon", days: str = Query("all", pattern="^(7|30|all)$"),
+                format: str | None = Query(None, pattern="^(online|in-person|hybrid)$")):
+    response.headers["Cache-Control"] = CDN_CACHE
+    selected = tuple(sorted({kind.strip() for kind in kinds.split(",") if kind.strip()} - HIDDEN_KINDS))
+    return _cached(("regions", selected, days, format), lambda: _region_counts(selected, days, format))
 
 
 def _stats() -> dict:

@@ -36,7 +36,7 @@ log = logging.getLogger(__name__)
 
 PASSES = {
     "quick": ["devpost", "devfolio", "unstop", "hackclub", "ctftime", "mlh", "taikai", "hackerearth", "luma",
-              "allhackathons", "zindi", "devnovate", "hack2skill", "hackquest", "commudle", "hackjunction"],
+              "allhackathons", "zindi", "devnovate", "hack2skill", "hackquest", "commudle", "hackjunction", "netherlandshackathons"],
     "browser": ["ethglobal", "kaggle", "itchio", "hackathoncom", "lablab",
                 "dorahacks", "encodeclub", "wemakedevs"],
     "full": None,  # every collector (minus LOCAL_ONLY when running in GitHub Actions)

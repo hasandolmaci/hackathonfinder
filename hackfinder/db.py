@@ -219,7 +219,7 @@ def init(*, places: bool = False) -> None:
 
         columns = {"score": "SMALLINT", "score_conf": "TEXT", "score_detail": "JSONTYPE",
                    "score_version": "TEXT", "lat": "REALTYPE", "lon": "REALTYPE",
-                   "cats": "TEXT", "flags": "TEXT"}
+                   "cats": "TEXT", "flags": "TEXT", "country_code": "TEXT", "region": "TEXT"}
         present = {r["name"] for r in conn.fetchall("PRAGMA table_info(events)")} if conn.kind == "sqlite" else set()
         for name, type_name in columns.items():
             if conn.kind == "postgres":
@@ -227,6 +227,7 @@ def init(*, places: bool = False) -> None:
             elif name not in present:
                 conn.execute(f"ALTER TABLE events ADD COLUMN {name} {type_name}")
         conn.execute("CREATE INDEX IF NOT EXISTS events_score ON events (status, kind, score)")
+        conn.execute("CREATE INDEX IF NOT EXISTS events_region ON events (status, region, country_code)")
         conn.execute("""CREATE TABLE IF NOT EXISTS places (
             id INTEGER PRIMARY KEY, name TEXT NOT NULL, ascii_name TEXT NOT NULL, country TEXT NOT NULL,
             country_code TEXT NOT NULL, lat REALTYPE NOT NULL, lon REALTYPE NOT NULL, population INTEGER NOT NULL)""")

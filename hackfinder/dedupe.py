@@ -43,6 +43,32 @@ def token_set_similarity(a: set[str], b: set[str]) -> float:
     return max(scores)
 
 
+# Words that don't identify a place: country names/codes and generic venue words. Sources write the
+# same venue very differently ("Eindhoven, NL" vs "HTC 31 - Holst Centre, Eindhoven, Netherlands").
+_PLACE_NOISE = {
+    "the", "and", "of", "de", "la", "le", "der", "van", "building", "centre", "center", "campus", "hall",
+    "room", "floor", "street", "st", "road", "rd", "avenue", "ave", "university", "college", "school",
+    "office", "hub", "space", "online", "virtual", "remote", "tbd", "tba", "venue", "city",
+    "nl", "netherlands", "nederland", "us", "usa", "united", "states", "america", "uk", "kingdom",
+    "gb", "england", "de", "germany", "deutschland", "fr", "france", "in", "india", "es", "spain",
+    "it", "italy", "ca", "canada", "be", "belgium", "ch", "switzerland", "se", "sweden", "pl", "poland",
+    "pt", "portugal", "ie", "ireland", "au", "australia", "sg", "singapore", "br", "brazil", "jp", "japan",
+}
+
+
+def _place_tokens(location: str) -> set[str]:
+    text = unicodedata.normalize("NFKD", location).encode("ascii", "ignore").decode().casefold()
+    return {t for t in re.findall(r"[a-z]{3,}", text) if t not in _PLACE_NOISE}
+
+
+def _same_place(left: str, right: str) -> bool:
+    """Same place when the strings share a real place word (usually the city)."""
+    if left.casefold() == right.casefold():
+        return True
+    a, b = _place_tokens(left), _place_tokens(right)
+    return not a or not b or bool(a & b)
+
+
 def _same(left: Event, right: Event) -> bool:
     if normalize_url(left.url) == normalize_url(right.url):
         return True
@@ -52,7 +78,7 @@ def _same(left: Event, right: Event) -> bool:
     a, b = _tokens(left.title), _tokens(right.title)
     if {t for t in a if t.isdigit()} != {t for t in b if t.isdigit()}:
         return False
-    if left.location and right.location and left.location.casefold() != right.location.casefold():
+    if left.location and right.location and not _same_place(left.location, right.location):
         return False
     if not a or not b:
         return False

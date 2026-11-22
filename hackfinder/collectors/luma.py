@@ -50,7 +50,9 @@ CALENDAR_BUDGET = 15 * 60  # Seconds for the whole "calendars" scope; the busies
 QUICK_PLACES = ["sf", "nyc", "london", "berlin", "amsterdam", "paris", "bengaluru", "singapore"]
 # Cities without a Luma place (and a few extra); searched as "hackathon <city>".
 CITY_QUERIES = [
-    "Utrecht", "Eindhoven", "Rotterdam", "The Hague", "Delft", "Leiden", "Groningen", "Antwerp", "Ghent",
+    "Utrecht", "Eindhoven", "Rotterdam", "The Hague", "Delft", "Leiden", "Groningen", "Nijmegen",
+    "Enschede", "Maastricht", "Tilburg", "Breda", "Haarlem", "Arnhem", "Amersfoort", "Den Haag", "Den Bosch",
+    "'s-Hertogenbosch", "Antwerp", "Ghent",
     "Cologne", "Stuttgart", "Dusseldorf", "Leipzig", "Dresden", "Nuremberg", "Lyon", "Toulouse", "Nice",
     "Lille", "Krakow", "Wroclaw", "Gdansk", "Brno", "Basel", "Graz", "Porto", "Valencia", "Seville",
     "Gothenburg", "Tallinn", "Riga", "Vilnius", "Bucharest", "Sofia", "Athens", "Belgrade", "Zagreb",
@@ -136,11 +138,16 @@ def _fold(text):
     return unicodedata.normalize("NFKD", str(text or "")).encode("ascii", "ignore").decode().lower().strip()
 
 
+# English/Dutch spellings of the same city: a query for either one accepts events placed under any of them.
+CITY_ALIASES = [{"the hague", "den haag", "'s-gravenhage", "s-gravenhage"}, {"'s-hertogenbosch", "s-hertogenbosch", "den bosch"}]
+
+
 def _in_city(entry, city):
     geo = (entry.get("event") or {}).get("geo_address_info") or {}
     cities = [geo.get("city"), geo.get("full_address")]
     cities += [x.get("city") for x in (geo.get("localized") or {}).values()]
-    return any(_fold(city) in _fold(x) for x in cities if x)
+    names = next((a for a in CITY_ALIASES if _fold(city) in a), {_fold(city)})
+    return any(n in _fold(x) for n in names for x in cities if x)
 
 
 def _get(c, params):

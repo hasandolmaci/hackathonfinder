@@ -52,6 +52,9 @@ LOCATIONS = [
     "ro--Bucharest", "ua--Kyiv", "de--Hamburg", "de--Frankfurt", "fr--Lyon", "gb--Manchester",
     "nl--Eindhoven", "nl--Rotterdam", "lt--Vilnius", "ee--Tallinn", "rs--Belgrade",
     "hr--Zagreb", "se--Göteborg", "tr--Istanbul",
+    # Netherlands (each resolves to its own city, checked by the page heading "events near <city>, NL")
+    "nl--Utrecht", "nl--The Hague", "nl--Delft", "nl--Leiden", "nl--Groningen", "nl--Nijmegen", "nl--Enschede",
+    "nl--Maastricht", "nl--Tilburg", "nl--Breda", "nl--Haarlem", "nl--Arnhem", "nl--Amersfoort", "nl--'s-Hertogenbosch",
     # Middle East and Africa
     "ae--Dubai", "ae--Abu Dhabi", "il--Tel Aviv-Yafo", "ng--Lagos", "ng--Abuja", "ke--Nairobi",
     "za--Cape Town", "za--Johannesburg", "eg--Cairo", "gh--Accra", "rw--Kigali", "ug--Kampala",

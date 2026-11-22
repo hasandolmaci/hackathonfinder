@@ -37,6 +37,12 @@ CITIES = [
     "singapore--singapore", "japan--tokyo", "south-korea--seoul", "australia--sydney",
     "australia--melbourne", "brazil--sao-paulo", "mexico--mexico-city", "nigeria--lagos",
     "kenya--nairobi", "south-africa--cape-town",
+    # Netherlands: Eventbrite ranks a country-wide search per slug (small cities have no page of their own and
+    # fall back to the country), so the country scope plus each city ranking surfaces different Dutch events.
+    "netherlands", "netherlands--rotterdam", "netherlands--utrecht", "netherlands--eindhoven",
+    "netherlands--the-hague", "netherlands--delft", "netherlands--groningen", "netherlands--leiden",
+    "netherlands--nijmegen", "netherlands--enschede", "netherlands--maastricht", "netherlands--tilburg",
+    "netherlands--breda", "netherlands--haarlem", "netherlands--arnhem",
 ]
 IDLE_PAGES = 2  # Stop after this many pages in a row without a hackathon-keyword match.
 # Keyword pre-filter (DECISIONS.md tier 2), as in meetup.py; "life hack" style tips are noise.
