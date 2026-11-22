@@ -225,11 +225,12 @@ def record_run(conn: db.Connection, *, pass_name: str, source: str, scope_key: s
 def rescore(conn: db.Connection, context=None) -> int:
     """Refresh every stored score, coordinate, category, flag, country and region, including historical editions."""
     from .categories import categorize, flags, pack
-    from .geo import geocode
+    from .geo import locate
+    from .geocoder import Geocoder
     from .regions import country_name, resolve
     from .score import Context, VERSION, score_event
 
-    rows = conn.fetchall("SELECT key, data FROM events")
+    rows = conn.fetchall("SELECT key, data, status FROM events")
     events = [Event.model_validate(db.loads(row["data"])) for row in rows]
     if context is None:
         active = [Event.model_validate(db.loads(row["data"])) for row in
@@ -238,11 +239,12 @@ def rescore(conn: db.Connection, context=None) -> int:
         rate_row = conn.fetchone("SELECT data FROM score_cache WHERE key = 'ecb'")
         context = Context(active, events, db.loads(rate_row["data"])["rates"] if rate_row else None)
     updates = []
+    online = Geocoder(conn)  # cached Nominatim lookups: active events only, capped per run (HF_GEOCODE_MAX)
     for row, event in zip(rows, events):
         result = score_event(event, context)
-        lat, lon = geocode(event.location, event.country, event.format)
+        lat, lon, geo_code = locate(event, online if row["status"] == "active" else None)
         cats, event_flags = categorize(event), flags(event)
-        code, region = resolve(event)
+        code, region = resolve(event, geo_code=geo_code)
         data = {**db.loads(row["data"]), "categories": cats, "flags": event_flags,
                 "country_code": code, "region": region, "country_name": country_name(code)}
         updates.append((result["score"], result["score_confidence"], db.dumps(result["score_detail"]),

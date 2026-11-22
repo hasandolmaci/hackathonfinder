@@ -16,6 +16,18 @@ def signals(*, text=None, **values):
     return result
 
 
+def geo(lat, lon, address=None):
+    """Source-provided coordinates as signals {"lat", "lon", "address"}; {} unless both are valid and not (0, 0)."""
+    try:
+        lat, lon = float(lat), float(lon)
+    except (TypeError, ValueError):
+        return {}
+    if not (math.isfinite(lat) and math.isfinite(lon) and abs(lat) <= 90 and abs(lon) <= 180) or (lat == 0 and lon == 0):
+        return {}
+    address = " ".join(str(address or "").split())[:200]
+    return {"lat": lat, "lon": lon, **({"address": address} if address else {})}
+
+
 def count(value):
     n = number(value)
     return int(n) if n is not None and math.isfinite(n) and n >= 0 and n.is_integer() and not isinstance(value, bool) else None
@@ -195,9 +207,13 @@ def source_signals(source, row, detail=None):
     if source == "globalgamejam":
         return signals(hosts=["Global Game Jam"], series_id="globalgamejam")
     if source == "eventbrite":
+        addr = (row.get("primary_venue") or {}).get("address") or {}
         return signals(text=row.get("full_description") or d.get("description") or row.get("summary"),
             series_id=str(row["series_id"]) if row.get("series_id") is not None else None,
-            invite_only=flag(row.get("is_protected_event")))
+            invite_only=flag(row.get("is_protected_event")),
+            **geo(((d.get("location") or {}).get("geo") or {}).get("latitude") or addr.get("latitude"),
+                  ((d.get("location") or {}).get("geo") or {}).get("longitude") or addr.get("longitude"),
+                  addr.get("localized_address_display") or addr.get("address_1")))
     if source == "allhackathons":
         return signals(text=d.get("text") or d.get("description") or row.get("description"),
             themes=d.get("themes") or row.get("themes"), **reward(d.get("prize")))

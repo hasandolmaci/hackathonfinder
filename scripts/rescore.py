@@ -68,6 +68,19 @@ def region_report(conn):
         print(f"By {name}:", ", ".join(f"{k} {v}" for k, v in sorted(counter.items(), key=lambda kv: -kv[1])[:25]))
 
 
+def geo_report(conn):
+    """Coordinate coverage for in-person/hybrid/unknown-format active events, and the geocode cache."""
+    rows = conn.fetchall("SELECT lat, data FROM events WHERE status = 'active' AND format <> 'online'")
+    have = sum(r["lat"] is not None for r in rows)
+    print(f"\nCoordinates: {have}/{len(rows)} active in-person/hybrid/unknown-format events ({have / max(1, len(rows)):.0%})")
+    cache = conn.fetchall("SELECT status, COUNT(*) AS n FROM geocode_cache GROUP BY status")
+    print("Geocode cache:", ", ".join(f"{r['status']} {r['n']}" for r in cache) or "empty",
+          "(online lookups: HF_GEOCODE_ONLINE=0 turns them off, HF_GEOCODE_MAX caps new ones per run)")
+    for r in [r for r in rows if r["lat"] is None][:15]:
+        event = db.loads(r["data"])
+        print("  no coordinates:", event.get("title", "")[:50], "|", event.get("location"), "|", event.get("country"))
+
+
 def print_row(row):
     detail = db.loads(row['score_detail']) if row['score_detail'] else {}
     reasons = '; '.join(detail.get('reasons', []))
@@ -86,6 +99,7 @@ def main():
         report(conn)
         taxonomy_report(conn)
         region_report(conn)
+        geo_report(conn)
     db.close()
 
 

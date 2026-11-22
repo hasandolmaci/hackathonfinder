@@ -25,6 +25,7 @@ from urllib.parse import urljoin
 import httpx
 
 from hackfinder.models import Event
+from ._signals_util import geo
 from ._vertical_util import MAX_PAGES, client, dt, plain, polite_json, robots, upcoming, walk, warn_limit
 
 SOURCE = {"id": "luma", "name": "Luma", "url": "https://luma.com/discover",
@@ -97,6 +98,10 @@ def _signals(entry, raw, hosts, calendar):
         "featured": True if entry.get("featured_guests") else None,
         "text": " ".join(str(text or "").split())[:3000] or None,
     }
+    info = raw.get("geo_address_info") or {}
+    coordinate = raw.get("coordinate") or {}
+    signals.update(geo(coordinate.get("latitude", raw.get("geo_latitude")), coordinate.get("longitude", raw.get("geo_longitude")),
+                       info.get("full_address") or ", ".join(str(x) for x in (info.get("address"), info.get("city")) if x)))
     return {k: v for k, v in signals.items() if v is not None}
 
 

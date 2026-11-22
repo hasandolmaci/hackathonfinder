@@ -11,6 +11,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+os.environ.setdefault("HF_GEOCODE_ONLINE", "0")  # no network in tests
 os.environ.pop("DATABASE_URL", None)
 
 from fastapi.testclient import TestClient

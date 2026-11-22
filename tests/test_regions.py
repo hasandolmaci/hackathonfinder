@@ -12,6 +12,7 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+os.environ.setdefault("HF_GEOCODE_ONLINE", "0")  # no network in tests
 os.environ.pop("DATABASE_URL", None)
 
 from fastapi.testclient import TestClient

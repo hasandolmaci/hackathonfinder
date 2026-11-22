@@ -26,6 +26,7 @@ from urllib.parse import quote
 
 from hackfinder.browser import cdp_page
 from hackfinder.models import Event
+from ._signals_util import geo
 
 SOURCE = {"id": "meetup", "name": "Meetup",
           "url": "https://www.meetup.com/find/?keywords=hackathon&source=EVENTS",
@@ -99,7 +100,7 @@ def _resolve(value, cache):
     return value or {}
 
 
-def _signals(raw: dict, group: dict, desc: str, rsvps) -> dict:
+def _signals(raw: dict, group: dict, desc: str, rsvps, venue: dict | None = None) -> dict:
     """Quality evidence for the Hackfinder Score; only what the page really returns."""
     hosts = [(((e.get("node") or {}).get("user") or {}).get("name"))
              for e in ((raw.get("rsvps") or {}).get("edges") or []) if (e.get("node") or {}).get("isHost")]
@@ -115,6 +116,9 @@ def _signals(raw: dict, group: dict, desc: str, rsvps) -> dict:
         "capacity": capacity if isinstance(capacity, int) and capacity > 0 else None,
         "text": desc[:3000] or None,
     }
+    venue = venue or {}  # search results carry name/address/city only; lat/lon appear when the payload has them
+    address = ", ".join(str(x) for x in (venue.get("name"), venue.get("address"), venue.get("city")) if x)
+    signals.update(geo(venue.get("lat"), venue.get("lon", venue.get("lng")), address) or ({"address": address} if address else {}))
     return {k: v for k, v in signals.items() if v is not None}
 
 
@@ -146,7 +150,7 @@ def _event(raw: dict, cache: dict) -> Event | None:
     desc = re.sub(r"[*_#>]+", "", desc).strip()
     rsvps = (raw.get("rsvps") or {}).get("totalCount")
     return Event(
-        signals=_signals(raw, group, desc, rsvps),
+        signals=_signals(raw, group, desc, rsvps, None if fmt == "online" else venue),
         source="meetup", source_id=str(raw.get("id") or ""), url=url.split("?")[0],
         title=title.strip(), description=desc[:500] or None,
         image=photo.get("highResUrl") or photo.get("baseUrl") and f"{photo['baseUrl']}{photo.get('id', '')}/676x380.webp" or None,

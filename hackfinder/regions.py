@@ -112,17 +112,16 @@ def _from_location(location: str | None) -> str | None:
 def _from_city(location: str | None, hint: str | None) -> str | None:
     """Country of the best-known GeoNames city in the location (worker/rescore path only)."""
     from . import geo
-    index = geo.city_index()
-    parts = [p.strip() for p in _SPLIT.split(geo.normalize(location or "")) if p.strip()]
-    candidates = [c for part in parts for c in index.get(part, []) if not hint or c["country_code"] == hint]
-    return max(candidates, key=lambda c: c["population"])["country_code"] if candidates else None
+    city = geo.match(location, hint)
+    return city["country_code"] if city else None
 
 
-def resolve(event: Event, use_geo: bool = True) -> tuple[str | None, str | None]:
-    """(country_code, region). Online events are (None, "online"); unknown places are (None, None)."""
+def resolve(event: Event, use_geo: bool = True, geo_code: str | None = None) -> tuple[str | None, str | None]:
+    """(country_code, region). Online events are (None, "online"); unknown places are (None, None).
+    geo_code is the country a geocoder learned for the event; it ranks after the event's own country and location."""
     if event.format == "online" or (event.location and _norm(event.location) in _ONLINE):
         return None, "online"
-    code = country_code(event.country) or _from_location(event.location)
+    code = country_code(event.country) or _from_location(event.location) or geo_code
     if not code and use_geo and event.location:
         try:
             code = _from_city(event.location, None)

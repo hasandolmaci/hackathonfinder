@@ -232,6 +232,9 @@ def init(*, places: bool = False) -> None:
             id INTEGER PRIMARY KEY, name TEXT NOT NULL, ascii_name TEXT NOT NULL, country TEXT NOT NULL,
             country_code TEXT NOT NULL, lat REALTYPE NOT NULL, lon REALTYPE NOT NULL, population INTEGER NOT NULL)""")
         conn.execute("CREATE INDEX IF NOT EXISTS places_name ON places (ascii_name)")
+        conn.execute("""CREATE TABLE IF NOT EXISTS geocode_cache (
+            query TEXT PRIMARY KEY, lat REALTYPE, lon REALTYPE, country_code TEXT, display_name TEXT,
+            status TEXT NOT NULL, fetched_at TEXT NOT NULL)""")
         conn.execute("CREATE TABLE IF NOT EXISTS score_cache (key TEXT PRIMARY KEY, data JSONTYPE NOT NULL)")
         if places:
             from .geo import populate
