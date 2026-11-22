@@ -36,10 +36,10 @@ export function savedLocation(){try{const p=JSON.parse(localStorage.getItem(loca
 
 export const categoryNames = {ai:'AI & ML',web3:'Web3 & Crypto',fintech:'Fintech',health:'Health & Biotech',climate:'Climate & Sustainability',gaming:'Gaming',education:'Education',social:'Social Impact',security:'Cybersecurity',hardware:'Hardware & IoT',robotics:'Robotics',xr:'AR/VR',opensource:'Open Source',data:'Data Science',mobile:'Mobile',cloud:'Cloud & DevOps',devtools:'Developer Tools',web:'Web Dev',design:'Design & UX',space:'Space Tech'};
 export const typeNames = {student:'Student',beginner:'Beginner-friendly',cash_prize:'Cash prize',travel:'Travel covered',weekend:'Weekend',new:'Newly added'};
-export const flagInfo = {travel:['✈','Travel support available'],student:['🎓','Student-friendly'],beginner:['🌱','Beginner-friendly'],cash_prize:['💰','Cash prize']};
-export function tagsHtml(e){const cats=(e.categories||[]).slice(0,3).map(c=>`<span class="cat-chip">${esc(categoryNames[c]||c)}</span>`),flags=Object.keys(flagInfo).filter(f=>(e.flags||[]).includes(f)).map(f=>`<span class="flag-badge" role="img" title="${esc(flagInfo[f][1])}" aria-label="${esc(flagInfo[f][1])}">${flagInfo[f][0]}</span>`);return cats.length||flags.length?`<div class="event-tags">${cats.join('')}${flags.join('')}</div>`:'';}
+export const flagInfo = {travel:['Travel','Travel support available'],student:['Student','Student-friendly'],beginner:['Beginner','Beginner-friendly'],cash_prize:['Cash prize','Cash prize']};
+export function tagsHtml(e){const cats=(e.categories||[]).slice(0,3).map(c=>`<span class="cat-chip">${esc(categoryNames[c]||c)}</span>`),flags=Object.keys(flagInfo).filter(f=>(e.flags||[]).includes(f)).map(f=>`<span class="flag-tag" title="${esc(flagInfo[f][1])}">${esc(flagInfo[f][0])}</span>`);return cats.length||flags.length?`<div class="event-tags">${cats.join('')}${flags.join('')}</div>`:'';}
 export const regionNames = {europe:'Europe',north_america:'North America',latin_america:'Latin America',asia:'Asia',middle_east:'Middle East',africa:'Africa',oceania:'Oceania',online:'Online'};
-export const flagEmoji = code => /^[A-Za-z]{2}$/.test(code||'') ? String.fromCodePoint(...[...code.toUpperCase()].map(c=>0x1F1E6+c.charCodeAt(0)-65)) : '';
+export const flagEmoji = code => /^[A-Za-z]{2}$/.test(code||'') ? code.toUpperCase() : '';  // plain ISO code, no emoji
 export const interestsKey = 'hackfinder.interests';
 export function savedInterests(){try{const p=JSON.parse(localStorage.getItem(interestsKey));return Array.isArray(p)?p.filter(id=>id in categoryNames):[];}catch{return [];}}
 export function saveInterests(list){try{localStorage.setItem(interestsKey,JSON.stringify(list));return true;}catch{return false;}}

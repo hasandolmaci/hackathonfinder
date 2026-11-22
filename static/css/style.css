@@ -9,3 +9,10 @@
 .country-filters{display:grid;gap:9px;max-height:176px;overflow-y:auto;margin-top:10px;padding-right:4px}
 #country-search{width:100%;font-size:11px;padding:6px 8px}
 .flag{font-size:13px;line-height:1}
+
+.flag-tag{padding:2px 6px;border:1px solid #3a4a3c;border-radius:10px;font-size:10px;color:#c8e7b8;white-space:nowrap}
+
+/* Phones: filters collapse behind a toggle so results come first */
+.filters-toggle{display:none}
+@media(max-width:760px){.filters-toggle{display:inline-flex;align-items:center;min-height:44px;padding:10px 16px;border-radius:10px;font-weight:700;color:var(--text)}.filters-toggle[aria-expanded=true]{background:#2a2a2a}.sidebar:not(.filters-open) .filter-group,.sidebar:not(.filters-open) .sidebar-nav,.sidebar:not(.filters-open) nav{display:none}.sidebar.filters-open .filter-group{display:block}.sidebar .kind-option,.sidebar .chip,.sidebar input[type=checkbox]+span{min-height:32px}}
+@media(max-width:760px){.sidebar:not(.filters-open) .filter-group:has(#format-filter){display:none}.sidebar.filters-open .filter-group:has(#format-filter){display:flex}}
