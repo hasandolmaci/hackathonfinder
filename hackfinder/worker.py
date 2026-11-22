@@ -35,10 +35,10 @@ log = logging.getLogger(__name__)
 
 PASSES = {
     "quick": ["devpost", "devfolio", "unstop", "hackclub", "ctftime", "mlh", "taikai", "hackerearth", "luma",
-              "allhackathons", "zindi", "devnovate", "hack2skill", "hackquest", "commudle", "hackjunction",
-              "eventbrite"],
+              "allhackathons", "zindi", "devnovate", "hack2skill", "hackquest", "commudle", "hackjunction"],
     "browser": ["ethglobal", "kaggle", "itchio", "hackathoncom", "lablab",
-                "globalgamejam", "dorahacks", "encodeclub", "wemakedevs"],
+                "globalgamejam", "dorahacks", "encodeclub", "wemakedevs",
+                "eventbrite"],  # falls back to Chrome when plain HTTP is refused (datacenter IPs)
     "full": None,  # every collector
 }
 SOURCE_TIMEOUT = {"quick": 15 * 60, "browser": 15 * 60, "full": 50 * 60}

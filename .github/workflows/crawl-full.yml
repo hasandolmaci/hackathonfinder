@@ -20,7 +20,8 @@ jobs:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
       KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
-      HF_HEADLESS: "1"
+      # Headful Chrome on a virtual display (Xvfb): bot walls such as Cloudflare reject headless Chrome far more often.
+      HF_HEADLESS: "0"
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -32,5 +33,6 @@ jobs:
             requirements-worker.txt
       - name: Check the DATABASE_URL secret
         run: test -n "$DATABASE_URL" || { echo "::error::Add the DATABASE_URL repository secret first (see DEPLOY.md)"; exit 1; }
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq xvfb
       - run: pip install -r requirements-worker.txt
-      - run: python -m hackfinder.worker --pass full
+      - run: xvfb-run -a --server-args="-screen 0 1920x1080x24" python -m hackfinder.worker --pass full

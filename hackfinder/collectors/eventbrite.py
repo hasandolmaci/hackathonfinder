@@ -113,34 +113,71 @@ def parse(html: str) -> tuple[list[Event], int, int]:
 
 
 def scopes(pass_name: str) -> list[str]:
-    """Plain HTTP and ranked, so the full pass gets every scope; quick takes the biggest hubs."""
+    """Ranked search: the full pass gets every scope; quick/browser passes take the biggest hubs
+    (through Chrome a scope takes ~25 s, and the browser pass gives a source 15 minutes)."""
     every = ["online"] + [f"city:{c}" for c in CITIES]
-    return every[:8] if pass_name == "quick" else every
+    return {"quick": every[:8], "browser": every[:16]}.get(pass_name, every)
+
+
+_use_browser = False  # set once plain HTTP is refused (datacenter IPs such as GitHub Actions get 405)
+
+
+def _pages(fetch, url, scope):
+    """Walk ?page=N with `fetch(page_url) -> (status, html)` until exhausted."""
+    events, idle = {}, 0
+    for page in range(1, MAX_PAGES + 1):
+        if page > 1:
+            time.sleep(1 + random.uniform(0, 0.5))
+        status, html = fetch(f"{url}?page={page}" if page > 1 else url)
+        if status in (401, 403, 405, 429):
+            raise PermissionError(f"blocked: HTTP {status} from {url}")
+        if status == 404 and page == 1:
+            raise RuntimeError(f"Eventbrite has no search page for scope {scope}")
+        if status >= 400:
+            raise RuntimeError(f"HTTP {status} from {url}")
+        found, last, total = parse(html)
+        events.update({e.url: e for e in found})
+        idle = 0 if found else idle + 1
+        if not total or page >= last or idle >= IDLE_PAGES:
+            break
+    else:
+        warn_limit(__name__, scope)
+    return list(events.values())
+
+
+def _browser_pages(url, scope):
+    """Same walk through hackfinder.browser.cdp_page, for when plain HTTP is refused."""
+    from hackfinder.browser import cdp_page
+    with cdp_page() as page:
+        def fetch(page_url):
+            resp = page.goto(page_url, wait_until="domcontentloaded")
+            html = page.content()
+            if not SERVER_DATA.search(html):  # give an interstitial a moment to clear by itself
+                page.wait_for_timeout(5000)
+                html = page.content()
+            status = resp.status if resp else 200
+            return (200 if SERVER_DATA.search(html) else status), html
+        return _pages(fetch, url, scope)
 
 
 def collect_scope(scope: str) -> list[Event]:
+    global _use_browser
     kind, _, slug = scope.partition(":")
     url = BASE.format("online" if kind == "online" else slug)
-    events, idle = {}, 0
-    with client(timeout=20) as c:
-        robots(c, url)
-        for page in range(1, MAX_PAGES + 1):
-            if page > 1:
-                time.sleep(1 + random.uniform(0, 0.5))
-            r = c.get(url, params={"page": page} if page > 1 else None, headers={"Accept": "text/html"})
-            if r.status_code in (401, 403, 429):
-                raise RuntimeError(f"blocked: HTTP {r.status_code} from {url}")
-            if r.status_code == 404 and page == 1:
-                raise RuntimeError(f"Eventbrite has no search page for scope {scope}")
-            r.raise_for_status()
-            found, last, total = parse(r.text)
-            events.update({e.url: e for e in found})
-            idle = 0 if found else idle + 1
-            if not total or page >= last or idle >= IDLE_PAGES:
-                break
-        else:
-            warn_limit(__name__, scope)
-    return list(events.values())
+    if not _use_browser:
+        try:
+            with client(timeout=20) as c:
+                robots(c, url)
+                def fetch(page_url):
+                    r = c.get(page_url, headers={"Accept": "text/html"})
+                    return r.status_code, r.text
+                return _pages(fetch, url, scope)
+        except PermissionError:
+            _use_browser = True  # plain HTTP refused: use the real browser for the rest of the run
+    try:
+        return _browser_pages(url, scope)
+    except PermissionError as exc:
+        raise RuntimeError(str(exc)) from None
 
 
 def collect() -> list[Event]:
