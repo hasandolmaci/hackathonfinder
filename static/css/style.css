@@ -16,3 +16,4 @@
 .filters-toggle{display:none}
 @media(max-width:760px){.filters-toggle{display:inline-flex;align-items:center;min-height:44px;padding:10px 16px;border-radius:10px;font-weight:700;color:var(--text)}.filters-toggle[aria-expanded=true]{background:#2a2a2a}.sidebar:not(.filters-open) .filter-group,.sidebar:not(.filters-open) .sidebar-nav,.sidebar:not(.filters-open) nav{display:none}.sidebar.filters-open .filter-group{display:block}.sidebar .kind-option,.sidebar .chip,.sidebar input[type=checkbox]+span{min-height:32px}}
 @media(max-width:760px){.sidebar:not(.filters-open) .filter-group:has(#format-filter){display:none}.sidebar.filters-open .filter-group:has(#format-filter){display:flex}}
+.browse-link{gap:.3em}
