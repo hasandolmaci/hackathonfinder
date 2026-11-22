@@ -5,6 +5,7 @@ from urllib.parse import urljoin
 
 from hackfinder.browser import cdp_page
 from hackfinder.models import Event
+from ._signals_util import source_signals
 from ._vertical_util import MAX_PAGES, browser_worker, client, dt, plain, robots, warn_limit
 from ._html_util import current
 
@@ -32,7 +33,7 @@ def _event(raw):
     if reward and re.fullmatch(r"\$[\d,.]+", reward.strip()):
         usd = float(reward.strip().lstrip("$").replace(",", ""))
     # teamCount is teams, not people: never expose it as participants.
-    return Event(source="kaggle", source_id=str(raw["id"]) if raw.get("id") else slug,
+    return Event(source="kaggle", signals=source_signals("kaggle", raw), source_id=str(raw["id"]) if raw.get("id") else slug,
         title=title, url=urljoin("https://www.kaggle.com", url),
         description=plain(raw.get("description") or raw.get("subtitle")),
         start=start, end=end, registration_deadline=dt(raw.get("rulesDeadline")),
@@ -103,7 +104,12 @@ def parse(html: str, base_url: str) -> list[Event]:
         paragraphs = link.css('p')
         description = next((p.text(separator=' ', strip=True) for p in paragraphs + link.css('span')
                             if len(p.text(strip=True)) > 20 and not re.search(r'Competition|Hackathon|Teams$|to go$', p.text(strip=True))), None)
-        events[url] = Event(source='kaggle', source_id=href.rstrip('/').split('/')[-1],
+        teams = re.search(r'\b([\d,]+) Teams\b', text, re.I)
+        category = re.search(r'\b(Getting Started|Featured|Research|Playground|Community|Analytics)\b', text)
+        events[url] = Event(source='kaggle', signals=source_signals('kaggle', {
+            'description': description, 'reward': reward,
+            'teamCount': teams[1].replace(',', '') if teams else None,
+            'category': category[1] if category else None}), source_id=href.rstrip('/').split('/')[-1],
             title=re.sub(r' List Item$', '', card.attributes['aria-label']), url=url, description=description,
             format='online', organizer=org.attributes['alt'][13:] if org else None,
             image=urljoin(base_url, image.attributes['src']) if image else None,

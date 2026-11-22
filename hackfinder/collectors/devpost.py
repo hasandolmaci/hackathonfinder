@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 import re
 
 from hackfinder.models import Event
+from ._signals_util import source_signals
 from ._platforms_util import MAX_PAGES, absolute, check_robots, client, current, json_response, number, plain, warn_limit
 
 SOURCE = {"id": "devpost", "name": "Devpost", "url": "https://devpost.com/hackathons",
@@ -55,7 +56,7 @@ def collect() -> list[Event]:
                 mode = "online" if loc.lower() == "online" else "hybrid" if "hybrid" in loc.lower() else "in-person" if loc else "unknown"
                 prize = plain(row.get("prize_amount"))
                 usd = number(prize[1:]) if prize and prize.startswith("$") else None
-                events.append(Event(source="devpost", source_id=str(row["id"]), title=plain(row["title"]),
+                events.append(Event(source="devpost", signals=source_signals("devpost", row), source_id=str(row["id"]), title=plain(row["title"]),
                     url=absolute(row["url"], API), image=absolute(row.get("thumbnail_url"), API),
                     start=start, end=end, format=mode, location=None if mode == "online" else loc or None,
                     prize=prize, prize_usd=usd, participants=row.get("registrations_count"),

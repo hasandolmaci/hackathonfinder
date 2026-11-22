@@ -210,8 +210,26 @@ def connect() -> Iterator[Connection]:
         raw.close()
 
 
-def init() -> None:
+def init(*, places: bool = False) -> None:
     """Create the tables if they are missing. Safe to call on every start."""
     with connect() as conn:
         for statement in _SCHEMA:
             conn.execute(statement)
+
+        columns = {"score": "SMALLINT", "score_conf": "TEXT", "score_detail": "JSONTYPE",
+                   "score_version": "TEXT", "lat": "REALTYPE", "lon": "REALTYPE"}
+        present = {r["name"] for r in conn.fetchall("PRAGMA table_info(events)")} if conn.kind == "sqlite" else set()
+        for name, type_name in columns.items():
+            if conn.kind == "postgres":
+                conn.execute(f"ALTER TABLE events ADD COLUMN IF NOT EXISTS {name} {type_name}")
+            elif name not in present:
+                conn.execute(f"ALTER TABLE events ADD COLUMN {name} {type_name}")
+        conn.execute("CREATE INDEX IF NOT EXISTS events_score ON events (status, kind, score)")
+        conn.execute("""CREATE TABLE IF NOT EXISTS places (
+            id INTEGER PRIMARY KEY, name TEXT NOT NULL, ascii_name TEXT NOT NULL, country TEXT NOT NULL,
+            country_code TEXT NOT NULL, lat REALTYPE NOT NULL, lon REALTYPE NOT NULL, population INTEGER NOT NULL)""")
+        conn.execute("CREATE INDEX IF NOT EXISTS places_name ON places (ascii_name)")
+        conn.execute("CREATE TABLE IF NOT EXISTS score_cache (key TEXT PRIMARY KEY, data JSONTYPE NOT NULL)")
+        if places:
+            from .geo import populate
+            populate(conn)

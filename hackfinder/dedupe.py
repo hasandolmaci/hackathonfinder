@@ -63,18 +63,44 @@ def _authority(event: Event) -> int:
     return {"hackathoncom": 100, "meetup": 30, "unstop": 20, "mlh": 15}.get(event.source, 0)
 
 
+def _signals(event: Event) -> dict:
+    from .score import COUNTS, extract
+
+    result = extract(event)
+    if event.participants is not None and not any(k in result for k in COUNTS - {"capacity"}):
+        result["participants"] = event.participants
+    for key in COUNTS & result.keys():
+        if not isinstance(result[key], dict):
+            result[key] = {event.source: result[key]}
+    return result
+
+
+def merge_signals(left: dict, right: dict) -> dict:
+    result = dict(left)
+    for key, value in right.items():
+        if key not in result:
+            result[key] = value
+        elif isinstance(value, dict) and isinstance(result[key], dict):
+            result[key] = {**value, **result[key]}
+        elif isinstance(value, list) and isinstance(result[key], list):
+            result[key] = list(dict.fromkeys(result[key] + value))
+        elif isinstance(value, bool) and isinstance(result[key], bool):
+            result[key] = result[key] or value
+    return result
+
+
 def dedupe(events: list[Event]) -> list[Event]:
     result: list[Event] = []
     # Process authority first so the canonical identity stays stable.
     for event in sorted(events, key=_authority):
         match = next((i for i, old in enumerate(result) if _same(old, event)), None)
         if match is None:
-            result.append(event.model_copy(deep=True))
+            result.append(event.model_copy(deep=True, update={"signals": _signals(event)}))
             continue
         old = result[match]
         updates = {}
         for field in Event.model_fields:
-            if field in {"source", "source_id", "url", "also_on", "fetched_at"}:
+            if field in {"source", "source_id", "url", "also_on", "fetched_at", "signals"}:
                 continue
             value = getattr(old, field)
             if value is None or value == "" or value == [] or value == "unknown":
@@ -84,6 +110,7 @@ def dedupe(events: list[Event]) -> list[Event]:
         if "kind" in updates:
             updates["confidence"] = event.confidence
             updates["classified_by"] = event.classified_by
+        updates["signals"] = merge_signals(old.signals, _signals(event))
         updates["also_on"] = sorted((set(old.also_on) | set(event.also_on) | {event.source}) - {old.source})
         result[match] = old.model_copy(update=updates)
     return result

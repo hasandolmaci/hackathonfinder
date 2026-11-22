@@ -7,6 +7,7 @@ rather than falling back to the robots-disallowed backend or stale local data.
 import os
 
 from hackfinder.models import Event
+from ._signals_util import source_signals
 from ._platforms_util import absolute, check_robots, client, current, json_response, plain, utc
 
 SOURCE = {"id": "hackclub", "name": "Hack Club", "url": "https://hackathons.hackclub.com",
@@ -32,7 +33,7 @@ def collect() -> list[Event]:
             continue
         seen.add(row["id"])
         mode = "hybrid" if row.get("hybrid") else "online" if row.get("virtual") else "in-person"
-        result.append(Event(source="hackclub", source_id=str(row["id"]), title=plain(row["name"]),
+        result.append(Event(source="hackclub", signals=source_signals("hackclub", row), source_id=str(row["id"]), title=plain(row["name"]),
             url=absolute(row.get("website"), SOURCE["url"]) or f"https://hackathons.hackclub.com/?event={row['id']}",
             image=absolute(row.get("banner") or row.get("logo"), SOURCE["url"]), start=start, end=end,
             format=mode, location=None if mode == "online" else ", ".join(dict.fromkeys(

@@ -2,6 +2,7 @@
 from collections import defaultdict
 
 from hackfinder.models import Event
+from ._signals_util import source_signals
 from ._platforms_util import MAX_PAGES, absolute, check_robots, client, current, json_response, number, plain, utc, warn_limit
 
 SOURCE = {"id": "unstop", "name": "Unstop", "url": "https://unstop.com/hackathons",
@@ -54,7 +55,7 @@ def _event(row):
     location = ", ".join(dict.fromkeys(x for x in (address.get("city"), address.get("state"), country) if x))
     prize, usd = _prizes(row.get("prizes") or [])
     kind = _kind(row)
-    return Event(source="unstop", source_id=str(row["id"]), title=plain(row["title"]),
+    return Event(source="unstop", signals=source_signals("unstop", row), source_id=str(row["id"]), title=plain(row["title"]),
         url=absolute(row.get("seo_url") or row.get("public_url"), "https://unstop.com/"),
         description=plain(row.get("details")), image=absolute(row.get("logoUrl2"), SOURCE["url"]),
         start=start, end=end, registration_deadline=utc((row.get("regnRequirements") or {}).get("end_regn_dt")),

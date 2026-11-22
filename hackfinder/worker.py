@@ -34,8 +34,11 @@ from .store import utcnow
 log = logging.getLogger(__name__)
 
 PASSES = {
-    "quick": ["devpost", "devfolio", "unstop", "hackclub", "ctftime", "mlh", "taikai", "hackerearth", "luma"],
-    "browser": ["ethglobal", "kaggle", "itchio", "hackathoncom", "lablab"],
+    "quick": ["devpost", "devfolio", "unstop", "hackclub", "ctftime", "mlh", "taikai", "hackerearth", "luma",
+              "allhackathons", "zindi", "devnovate", "hack2skill", "hackquest", "commudle", "hackjunction",
+              "eventbrite"],
+    "browser": ["ethglobal", "kaggle", "itchio", "hackathoncom", "lablab",
+                "globalgamejam", "dorahacks", "encodeclub", "wemakedevs"],
     "full": None,  # every collector
 }
 SOURCE_TIMEOUT = {"quick": 15 * 60, "browser": 15 * 60, "full": 50 * 60}
@@ -165,6 +168,33 @@ def load() -> dict[str, ModuleType]:
     return mods
 
 
+def refresh_rates() -> None:
+    """Fetch one ECB reference table per run; preserve the last good table offline."""
+    import httpx
+    from xml.etree import ElementTree
+    from .score import STATIC_RATES
+
+    try:
+        response = httpx.get("https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml", timeout=10)
+        response.raise_for_status()
+        root = ElementTree.fromstring(response.content)
+        rates = {node.attrib["currency"]: float(node.attrib["rate"]) for node in root.iter()
+                 if "currency" in node.attrib and "rate" in node.attrib}
+        if "USD" not in rates or any(value <= 0 for value in rates.values()):
+            raise ValueError("invalid ECB rates")
+        rates["EUR"] = 1
+        payload = {"rates": rates, "fetched_at": store.iso(utcnow()), "source": "ECB"}
+    except Exception as exc:
+        log.warning("ECB unavailable; using cached/static rates: %s", exc)
+        with db.connect() as conn:
+            if conn.fetchone("SELECT key FROM score_cache WHERE key = 'ecb'"):
+                return
+        payload = {"rates": STATIC_RATES, "fetched_at": None, "source": "static fallback"}
+    with db.connect() as conn:
+        conn.execute("""INSERT INTO score_cache (key, data) VALUES ('ecb', CAST(? AS JSONTYPE))
+                        ON CONFLICT (key) DO UPDATE SET data = excluded.data""", (db.dumps(payload),))
+
+
 def run(pass_name: str, only: list[str] | None = None, collectors: dict[str, ModuleType] | None = None) -> dict:
     """Run one pass. Raises only on database failure."""
     if pass_name not in PASSES:
@@ -174,7 +204,8 @@ def run(pass_name: str, only: list[str] | None = None, collectors: dict[str, Mod
     wanted = PASSES[pass_name]
     selected = {cid: mod for cid, mod in collectors.items()
                 if (wanted is None or cid in wanted) and (not only or cid in only)}
-    db.init()
+    db.init(places=True)
+    refresh_rates()
     now = utcnow()
     with db.connect() as conn:
         for cid, module in collectors.items():

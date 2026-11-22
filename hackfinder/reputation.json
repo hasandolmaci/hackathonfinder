@@ -1,0 +1,20 @@
+﻿{
+  "A": {
+    "ETHGlobal": ["ETH Global"], "Major League Hacking": ["MLH"],
+    "Google": ["Google DeepMind", "DeepMind"], "Microsoft": [], "Amazon": ["AWS", "Amazon Web Services"],
+    "Meta": [], "Apple": [], "NVIDIA": [], "OpenAI": [], "Anthropic": [],
+    "Hugging Face": [], "Ethereum Foundation": [], "Solana Foundation": [],
+    "Stanford University": ["Stanford", "TreeHacks"], "Massachusetts Institute of Technology": ["MIT", "HackMIT"],
+    "Harvard University": ["Harvard"], "University of Pennsylvania": ["PennApps"],
+    "University of Cambridge": ["Cambridge University"], "University of Oxford": ["Oxford University"],
+    "ETH Zurich": ["ETH Zürich"], "IIT Bombay": [], "IIT Delhi": [], "IIT Madras": [], "IIT Kanpur": [], "IIT Kharagpur": [],
+    "Global Game Jam": ["GGJ"], "Ludum Dare": [], "DEF CON CTF": ["DEFCON CTF"], "Google CTF": []
+  },
+  "B": {
+    "Devpost": [], "Devfolio": [], "Hack Club": [], "Encode Club": [], "Junction": ["HackJunction"],
+    "Chainlink": [], "Polygon": [], "Arbitrum": [], "Optimism": [], "Avalanche": [], "Coinbase": [],
+    "Databricks": [], "Mistral AI": [], "Cohere": [], "Replit": [], "Vercel": [], "GitHub": [],
+    "Unity": [], "Epic Games": [], "GMTK Game Jam": ["GMTK"], "Brackeys": [],
+    "picoCTF": [], "PlaidCTF": [], "UIUCTF": [], "CSAW": [], "IIT Roorkee": [], "IIT Guwahati": []
+  }
+}

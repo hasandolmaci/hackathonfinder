@@ -1,5 +1,6 @@
 """Run one collector live and print a summary:  python -m hackfinder.collectors._try devpost"""
 import importlib
+import json
 import sys
 import time
 
@@ -17,3 +18,5 @@ for e in events[:5]:
     print(" -", e.title, "|", e.start, "|", e.format, "|", e.location, "|", e.kind, "|", e.url)
 missing_start = sum(1 for e in events if e.start is None)
 print(f"   missing start: {missing_start}/{len(events)}")
+if events:
+    print("   signals:", json.dumps(events[0].signals, ensure_ascii=False))

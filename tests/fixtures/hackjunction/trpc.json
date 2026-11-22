@@ -1,0 +1,115 @@
+[
+ {
+  "result": {
+   "data": {
+    "json": [
+     {
+      "id": 60,
+      "name": "Junction 2027 Pre-registration",
+      "slug": "junction2027-prere",
+      "description": "The biggest hackathon in Europe.\n\nTheme TBA\nPartners TBA\nLocation TBA\nPrizes TBA",
+      "eventType": "physical",
+      "allowMultipleSubmissions": false,
+      "isFeatured": false,
+      "hasGavelVoting": false,
+      "hasFinalistVoting": false,
+      "galleryOpen": false,
+      "maxTeamSize": 4,
+      "displayPriority": 0,
+      "eventStatus": "published",
+      "approved": true,
+      "meetingsEnabled": false,
+      "showScore": false,
+      "showFeedback": false,
+      "reviewAnyChallenge": false,
+      "physicalPeerReview": false,
+      "currentPeerReviewRound": null,
+      "displayTimezone": "Europe/Helsinki",
+      "coverImage": "https://res.cloudinary.com/hackjunction/image/upload/v1794762014/Admin/Images/pjpifsad0q8xysyfiubi.jpg",
+      "featureBannerImage": null,
+      "logo": null,
+      "registrationStartTime": "2026-11-15T00:00:00.000Z",
+      "registrationEndTime": "2098-07-01T00:00:00.000Z",
+      "startTime": "2098-11-12T16:00:00.000Z",
+      "submissionsStartTime": "2027-11-13T00:00:00.000Z",
+      "submissionsEndTime": "2027-11-14T10:00:00.000Z",
+      "reviewingStartTime": null,
+      "reviewingEndTime": null,
+      "endTime": "2098-11-14T18:00:00.000Z",
+      "newsletterLink": null,
+      "privacyLink": null,
+      "termsLink": null,
+      "faqLink": null,
+      "gavelBaseUrl": null,
+      "gavelAdminToken": null,
+      "createdAt": "2026-11-15 16:56:16.745325",
+      "updatedAt": "2026-11-15 17:03:07.504",
+      "contactPersonName": null,
+      "contactEmail": null,
+      "discordLink": null
+     }
+    ]
+   }
+  }
+ },
+ {
+  "result": {
+   "data": {
+    "json": []
+   }
+  }
+ },
+ {
+  "result": {
+   "data": {
+    "json": [
+     {
+      "id": 1,
+      "name": "Old Junction",
+      "slug": "old",
+      "description": "The biggest hackathon in Europe.\n\nTheme TBA\nPartners TBA\nLocation TBA\nPrizes TBA",
+      "eventType": "physical",
+      "allowMultipleSubmissions": false,
+      "isFeatured": false,
+      "hasGavelVoting": false,
+      "hasFinalistVoting": false,
+      "galleryOpen": false,
+      "maxTeamSize": 4,
+      "displayPriority": 0,
+      "eventStatus": "published",
+      "approved": true,
+      "meetingsEnabled": false,
+      "showScore": false,
+      "showFeedback": false,
+      "reviewAnyChallenge": false,
+      "physicalPeerReview": false,
+      "currentPeerReviewRound": null,
+      "displayTimezone": "Europe/Helsinki",
+      "coverImage": "https://res.cloudinary.com/hackjunction/image/upload/v1794762014/Admin/Images/pjpifsad0q8xysyfiubi.jpg",
+      "featureBannerImage": null,
+      "logo": null,
+      "registrationStartTime": "2026-11-15T00:00:00.000Z",
+      "registrationEndTime": "2098-07-01T00:00:00.000Z",
+      "startTime": "2020-01-01T00:00:00.000Z",
+      "submissionsStartTime": "2027-11-13T00:00:00.000Z",
+      "submissionsEndTime": "2027-11-14T10:00:00.000Z",
+      "reviewingStartTime": null,
+      "reviewingEndTime": null,
+      "endTime": "2020-01-03T00:00:00.000Z",
+      "newsletterLink": null,
+      "privacyLink": null,
+      "termsLink": null,
+      "faqLink": null,
+      "gavelBaseUrl": null,
+      "gavelAdminToken": null,
+      "createdAt": "2026-11-15 16:56:16.745325",
+      "updatedAt": "2026-11-15 17:03:07.504",
+      "contactPersonName": null,
+      "contactEmail": null,
+      "discordLink": null
+     }
+    ]
+   }
+  }
+ }
+]

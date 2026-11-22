@@ -127,8 +127,16 @@ def remerge(conn: db.Connection, now: datetime | None = None) -> int:
         first_by_key[row["event_key"]] = min(first, row["first_seen"]) if first else row["first_seen"]
     current = [e for e in (Event.model_validate(db.loads(r["data"])) for r in rows) if not _past(e, cutoff)]
     existing = {r["key"]: r["first_seen"] for r in conn.fetchall("SELECT key, first_seen FROM events")}
+    from .score import Context, prize_usd
+    history = [Event.model_validate(db.loads(r["data"])) for r in conn.fetchall("SELECT data FROM events")]
+    rate_row = conn.fetchone("SELECT data FROM score_cache WHERE key = 'ecb'")
+    rates = db.loads(rate_row["data"])["rates"] if rate_row else None
+    recent = iso(now - timedelta(days=180))
+    cohort = [Event.model_validate(db.loads(r["data"])) for r in rows if r["last_seen"] >= recent]
+    context = Context([e for e in cohort if not _past(e, cutoff)], history, rates)
     merged = {}
     for event in dedupe(current):
+        event = event.model_copy(update={"prize_usd": prize_usd(event, rates)})
         key = event_key(event)
         first, last = seen.get((event.source, ident(event)), (stamp, stamp))
         first = min(x for x in (existing.get(key), first_by_key.get(key), first) if x)
@@ -147,6 +155,7 @@ def remerge(conn: db.Connection, now: datetime | None = None) -> int:
                participants = excluded.participants, first_seen = excluded.first_seen,
                last_seen = excluded.last_seen, status = 'active', updated_at = excluded.updated_at""",
         merged.values())
+    rescore(conn, context)
     gone = conn.fetchall("SELECT key, start_at, end_at FROM events WHERE status <> ?", ("expired",))
     updates = []
     for row in gone:
@@ -188,3 +197,27 @@ def record_run(conn: db.Connection, *, pass_name: str, source: str, scope_key: s
                                             status, rows, exhaustive, error)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                  (pass_name, source, scope_key, iso(started_at), iso(finished_at), status, rows, exhaustive, error))
+
+
+def rescore(conn: db.Connection, context=None) -> int:
+    """Refresh every stored score and coordinate, including historical editions."""
+    from .geo import geocode
+    from .score import Context, VERSION, score_event
+
+    rows = conn.fetchall("SELECT key, data FROM events")
+    events = [Event.model_validate(db.loads(row["data"])) for row in rows]
+    if context is None:
+        active = [Event.model_validate(db.loads(row["data"])) for row in
+                  conn.fetchall("SELECT data FROM event_sources WHERE active = TRUE AND last_seen >= ?",
+                                (iso(utcnow() - timedelta(days=180)),))]
+        rate_row = conn.fetchone("SELECT data FROM score_cache WHERE key = 'ecb'")
+        context = Context(active, events, db.loads(rate_row["data"])["rates"] if rate_row else None)
+    updates = []
+    for row, event in zip(rows, events):
+        result = score_event(event, context)
+        lat, lon = geocode(event.location, event.country, event.format)
+        updates.append((result["score"], result["score_confidence"], db.dumps(result["score_detail"]),
+                        VERSION, lat, lon, row["key"]))
+    conn.executemany("""UPDATE events SET score = ?, score_conf = ?, score_detail = CAST(? AS JSONTYPE),
+                        score_version = ?, lat = ?, lon = ? WHERE key = ?""", updates)
+    return len(updates)

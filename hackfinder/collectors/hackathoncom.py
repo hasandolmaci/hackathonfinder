@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from urllib.parse import urljoin
 from hackfinder.browser import cdp_page
 from hackfinder.models import Event
+from ._signals_util import signals, reward
 from ._html_util import HTMLParser, objects, current, load
 from ._vertical_util import MAX_PAGES, browser_worker, client, robots, dt, plain, warn_limit
 
@@ -32,7 +33,7 @@ def _make(title, url, start, end, location=None, description=None, organizer=Non
     prizes = re.findall(r'\$[\d,]+(?:\.\d+)?[^.!?]{0,45}?\b(?:in prizes(?: overall)?|prize pool|grand prize)\b', description or '', re.I)
     prize = next((p for p in prizes if 'overall' in p.lower()), prizes[0] if prizes else None)
     amount = re.search(r'\$([\d,.]+)', prize or '')
-    return Event(source='hackathoncom', source_id=url.rstrip('/').rsplit('-', 1)[-1], title=title,
+    return Event(source='hackathoncom', signals=signals(text=description, themes=list(tags), **reward(prize)), source_id=url.rstrip('/').rsplit('-', 1)[-1], title=title,
         url=url, start=start, end=end, format='online' if online else 'in-person' if location else 'unknown',
         location=None if online else location, description=plain(description), organizer=organizer,
         tags=list(tags), image=image, prize=prize, prize_usd=float(amount[1].replace(',', '')) if amount else None,
@@ -50,7 +51,7 @@ def parse(html: str, base_url: str) -> list[Event]:
         location = 'Online' if raw.get('online') else ', '.join(x for x in [raw.get('city'), raw.get('country')] if isinstance(x, str) and x) or raw.get('venue')
         event = _make(raw['name'], urljoin(base_url, '/event/' + raw['slug']),
             dt(raw.get('date_start')), dt(raw.get('date_end')), location,
-            plain(raw.get('desc')), raw.get('organizerName'), raw.get('topic') or [])
+            raw.get('desc'), raw.get('organizerName'), raw.get('topic') or [])
         if event:
             events[event.url] = event
     tree = HTMLParser(html)

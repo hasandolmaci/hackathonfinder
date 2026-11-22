@@ -1,0 +1,140 @@
+{
+ "data": {
+  "listHackathons": {
+   "total": 2,
+   "data": [
+    {
+     "id": "39c0c303-d485-4d36-ada0-356b988f0618",
+     "name": "Arbitrum Open House São Paulo: Online Buildathon",
+     "alias": "Arbitrum-Open-House-Sao-Paulo-Online-Buildathon",
+     "status": "publish",
+     "participants": 36,
+     "projectCount": 1,
+     "totalRewards": "100000",
+     "winnerCount": 0,
+     "ecosystem": [
+      {
+       "type": "Arbitrum"
+      }
+     ],
+     "info": {
+      "host": "Arbitrum Foundation",
+      "image": "https://assets.hackquest.io/hackathons/Jzf3nbZbH5zS6dG9qPnPg.jpg",
+      "intro": "Build what's next",
+      "levelTag": "",
+      "mode": "ONLINE",
+      "teachStack": [
+       "Solidity",
+       "Rust"
+      ],
+      "description": "<p><strong>Arbitrum Open House São Paulo — Buildathon</strong></p><p>São Paulo is where ambitious startups, global capital, and Latin America’s rapidly growing onchain ecosystem converge.</p><p>Arbitrum provides infrastructure trusted by institutions and used by millions.</p><p>It’s time to connect "
+     },
+     "judge": [
+      {
+       "announce": false
+      },
+      {
+       "announce": false
+      },
+      {
+       "announce": false
+      }
+     ],
+     "timeline": {
+      "registrationOpen": "2098-01-01T00:00:00.000Z",
+      "registrationClose": "2098-02-01T00:00:00.000Z",
+      "submissionOpen": "2098-01-15T00:00:00.000Z",
+      "submissionClose": "2098-02-01T00:00:00.000Z"
+     },
+     "rewards": [
+      {
+       "totalRewards": 55000,
+       "currency": "USDC"
+      },
+      {
+       "totalRewards": 15000,
+       "currency": "USDC"
+      },
+      {
+       "totalRewards": 30000,
+       "currency": "USDC"
+      }
+     ],
+     "members": [
+      {
+       "userId": "90b8c745-4562-42cc-ab0c-ef64765fe76f"
+      },
+      {
+       "userId": "11a25cb1-9101-4d52-875a-f9a98a9ce6f8"
+      }
+     ]
+    },
+    {
+     "id": "57e543a9-0b08-4ba3-8326-e5cd751c0248",
+     "name": "0G APAC Hackathon",
+     "alias": "0G-APAC-Hackathon",
+     "status": "publish",
+     "participants": 1144,
+     "projectCount": 291,
+     "totalRewards": "150000",
+     "winnerCount": 3,
+     "ecosystem": [
+      {
+       "type": "0G"
+      }
+     ],
+     "info": {
+      "host": "0G",
+      "image": "https://assets.hackquest.io/hackathons/Ks0ghXz8wLc-a0DMsIesx.png",
+      "intro": "Build the next generation of AI x Web3 applications on 0G’s modular infrastructure.",
+      "levelTag": "",
+      "mode": "ONLINE",
+      "teachStack": [
+       "All"
+      ],
+      "description": "<p>The <strong>0G APAC Hackathon</strong> is a builder program for developers creating the next generation of AI x Web3 applications on 0G.</p><p>Running from <strong>March to May 2026</strong>, the hackathon invites developers, founders, and early-stage teams to build with 0G’s modular infrastructu"
+     },
+     "judge": [
+      {
+       "announce": true
+      },
+      {
+       "announce": false
+      },
+      {
+       "announce": false
+      }
+     ],
+     "timeline": {
+      "submissionClose": "2026-05-16T15:59:00.000Z",
+      "submissionOpen": "2026-03-18T16:01:00.000Z",
+      "registrationClose": "2026-05-16T15:59:00.000Z",
+      "registrationOpen": "2026-03-18T16:01:00.000Z"
+     },
+     "rewards": [
+      {
+       "totalRewards": 100000,
+       "currency": "USD"
+      },
+      {
+       "totalRewards": 37000,
+       "currency": "USD"
+      },
+      {
+       "totalRewards": 13000,
+       "currency": "USD"
+      }
+     ],
+     "members": [
+      {
+       "userId": "66564787-757d-4024-84ed-ef8df1140563"
+      },
+      {
+       "userId": "df4afbce-fb74-4baf-ac33-c20148fee071"
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

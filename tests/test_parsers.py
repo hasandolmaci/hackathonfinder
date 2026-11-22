@@ -111,6 +111,7 @@ def test_luma_scopes(monkeypatch=None):
         seen.append(dict(params))
         return {'entries': rows}
     original, luma._get, luma._places['sf'] = luma._get, fake, 'discplace-sf'
+    luma._categories['tech'] = 'cat-tech'
     try:
         assert [e.title for e in luma.collect_scope('city:Krakow')] == ['City Hackathon', 'Game Jam Night']
         assert seen[-1]['query'] == 'hackathon Krakow'
@@ -118,11 +119,83 @@ def test_luma_scopes(monkeypatch=None):
         assert seen[-1]['discover_place_api_id'] == 'discplace-sf' and seen[-1]['query'] == 'datathon'
         luma.collect_scope('online:game jam')
         assert seen[-1]['query'] == 'online game jam' and 'discover_place_api_id' not in seen[-1]
+        luma.collect_scope('cat:tech:hack')
+        assert seen[-1]['query'] == 'hack' and seen[-1]['discover_category_api_id'] == 'cat-tech'
+        assert 'discover_place_api_id' not in seen[-1]
     finally:
         luma._get = original
     quick = luma.scopes('quick')
     assert 'global:hackathon' in quick and 'place:sf:hackathon' in quick and len(quick) == 10
     assert all(s.split(':')[0] in ('global', 'online', 'place') for s in quick)
+
+
+def test_luma_full_scopes():
+    luma._places.update({'sf': 'p1', 'denver': 'p2'})
+    luma._categories.update({'tech': 'c1', 'ai': 'c2', 'arts': 'c3'})
+    full = luma.scopes('full')
+    assert len(full) == len(set(full)) and full[-1] == 'calendars' and full.count('calendars') == 1
+    assert {x for x in luma.scopes('quick') if not x.startswith('place:')} <= set(full)  # Only 2 places are loaded here.
+    assert 'global:hakaton' in full and 'online:\u30cf\u30c3\u30ab\u30bd\u30f3' in full
+    assert 'place:sf:ideathon' in full and 'place:denver:hack' in full and 'place:denver:ideathon' not in full
+    assert 'cat:tech:hack' in full and 'cat:ai:hackathon' in full and not any(s.startswith('cat:crypto') for s in full)
+    assert 'city:Utrecht' in full
+    # Place + category is never generated: Luma ignores the category when a place ID is present.
+    assert not any(s.startswith('place:') and s.count(':') > 2 and s.split(':')[2] in luma.CATEGORIES for s in full)
+
+
+def test_luma_calendars():
+    future = (datetime.now(timezone.utc) + timedelta(days=20)).isoformat()
+    def item(i, name, cal, cal_name):
+        return {'api_id': 'evt-%d' % i, 'calendar': {'api_id': cal, 'name': cal_name},
+                'event': {'api_id': 'evt-%d' % i, 'name': name, 'url': 'c%d' % i, 'start_at': future, 'location_type': 'online'}}
+    pages = {None: {'entries': [item(1, 'Spring Hackathon', 'cal-a', 'A'), item(2, 'Social', 'cal-a', 'A')],
+                    'has_more': True, 'next_cursor': 'abc'},
+             'abc': {'entries': [item(3, 'Build Day', 'cal-a', 'A'), item(1, 'Spring Hackathon', 'cal-a', 'A')], 'has_more': False}}
+    calls = []
+    def fake(c, params):
+        calls.append(dict(params))
+        if params['calendar_api_id'] == 'cal-gone':
+            raise httpx.HTTPStatusError('gone', request=httpx.Request('GET', 'https://x'), response=httpx.Response(404))
+        return pages[params.get('pagination_cursor')] if params['calendar_api_id'] == 'cal-a' else {'entries': [], 'has_more': False}
+    original, seeds = (luma._get, luma.seed_calendars), {'cal-a': 'A', 'cal-gone': 'Gone'}
+    luma._get, luma.seed_calendars = fake, lambda: seeds
+    luma._calendars.clear()
+    luma._calendars['cal-seen'] = {'name': 'Seen', 'hits': 2}
+    try:
+        events = luma.collect_scope('calendars')
+    finally:
+        luma._get, luma.seed_calendars = original
+    assert sorted(e.title for e in events) == ['Build Day', 'Spring Hackathon']  # Cursor followed, deduped, relevance only.
+    assert [c['calendar_api_id'] for c in calls] == ['cal-a', 'cal-a', 'cal-gone', 'cal-seen']  # 404 skipped, seen crawled.
+    assert calls[0]['period'] == 'future' and 'pagination_cursor' not in calls[0] and calls[1]['pagination_cursor'] == 'abc'
+    assert luma._calendars['cal-a']['hits'] == 3 and luma._calendars['cal-a']['name'] == 'A'
+    luma._calendars.clear()
+    seen = {'x': {'name': 'X', 'hits': 1}, 'y': {'name': 'Y', 'hits': 5}, 'cal-a': {'name': 'A', 'hits': 9}}
+    assert luma.calendar_order({'cal-a': 'A'}, seen) == [('cal-a', 'A'), ('y', 'Y'), ('x', 'X')]  # Seeds first, busiest next.
+    real = luma.seed_calendars()
+    assert 'cal-qTA84G1Wwdl14m4' in real and all(k.startswith('cal-') for k in real)  # Cerebral Valley is seeded.
+
+
+def test_signals():
+    future = (datetime.now(timezone.utc) + timedelta(days=5)).isoformat()
+    entry = {'api_id': 'e1', 'guest_count': 40, 'calendar': {'api_id': 'cal-z', 'name': 'Zed'},
+             'hosts': [{'name': 'Ann'}, {'name': None}], 'featured_guests': [{'name': 'x'}],
+             'ticket_info': {'is_free': False, 'price': {'cents': 1250, 'currency': 'eur'}},
+             'event': {'api_id': 'e1', 'name': 'X Hackathon', 'url': 'x', 'start_at': future, 'description': 'Build  things'}}
+    sig = luma._event(entry).signals
+    assert sig == {'guests': 40, 'hosts': ['Ann'], 'calendar_id': 'cal-z', 'calendar_name': 'Zed', 'paid_entry': True,
+                   'entry_fee': '12.50 EUR', 'featured': True, 'text': 'Build things'}
+    entry.update(guest_count=0, featured_guests=[], ticket_info={'is_free': True, 'price': None})
+    entry['event']['hide_rsvp'] = True
+    sig = luma._event(entry).signals
+    assert 'guests' not in sig and sig['paid_entry'] is False and 'entry_fee' not in sig and 'featured' not in sig
+    raw = {'eventUrl': 'https://m/e', 'title': 'Hack Night', 'dateTime': future, 'description': 'Come [link](u) **now**',
+           'feeSettings': {'amount': 5.0, 'currency': 'USD'}, 'maxTickets': 0, 'group': {'name': 'Hackers'},
+           'rsvps': {'totalCount': 7, 'edges': [{'node': {'isHost': True, 'user': {'name': 'Bo'}}},
+                                                {'node': {'isHost': False, 'user': {'name': 'Cy'}}}]}}
+    sig = meetup._event(raw, {}).signals
+    assert sig == {'rsvps': 7, 'hosts': ['Bo'], 'calendar_name': 'Hackers', 'paid_entry': True, 'entry_fee': '5 USD',
+                   'text': 'Come link now'}
 
 
 def test_ctftime_windows():
@@ -142,15 +215,31 @@ def test_ctftime_windows():
 def test_meetup_scopes():
     scopes = meetup.scopes('quick')
     assert scopes == meetup.scopes('full') and scopes[:2] == ['global', 'online']
-    assert 'loc:us--ca--San Francisco' in scopes and len(scopes) == len(meetup.LOCATIONS) + 2
+    searches = [i for s in scopes[2:] for i in s.removeprefix('locs:').split('|')]
+    assert searches == meetup.searches() and all(s.startswith('locs:') for s in scopes[2:])
+    assert all(len(s.split('|')) <= meetup.BATCH for s in scopes[2:])
+    assert 'loc:us--ca--San Francisco' in searches and 'kw:hack night@us--ca--San Francisco' in searches
+    assert len(meetup.LOCATIONS) >= 60 and len(set(meetup.LOCATIONS)) == len(meetup.LOCATIONS)
+    assert all(l.count('--') in (1, 2) and l.split('--')[0].islower() for l in meetup.LOCATIONS)
+    assert meetup._items('locs:loc:de--Berlin|loc:fr--Paris') == ['loc:de--Berlin', 'loc:fr--Paris']
+    assert meetup._items('global') == ['global']
+    assert meetup._url('global') == meetup.BASE and meetup._url('online').endswith('&eventType=online')
+    assert meetup._url('loc:us--ca--San Francisco').endswith('&location=us--ca--San%20Francisco')
+    url = meetup._url('kw:hack night@us--wa--Seattle')
+    assert 'keywords=hack%20night' in url and 'keywords=hackathon' not in url and url.endswith('location=us--wa--Seattle')
     node = {'__typename': 'Event', 'id': '1'}
     assert meetup._ids([{'a': [node, {'eventUrl': 'u', 'dateTime': 'x'}]}]) == {'1', 'u'}
+    assert meetup.HACK_RE.search('Berlin Game Jam') and meetup.HACK_RE.search('\u0425\u0430\u043a\u0430\u0442\u043e\u043d')
+    assert not meetup.HACK_RE.search('Improv Jam in Person') and not meetup.HACK_RE.search('MUSIC JAM SF')
 
 
 if __name__ == '__main__':
     test_snapshots()
     test_future_and_past_records()
     test_luma_scopes()
+    test_luma_full_scopes()
+    test_luma_calendars()
+    test_signals()
     test_ctftime_windows()
     test_meetup_scopes()
     print('All parser assertions passed.')

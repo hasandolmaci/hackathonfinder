@@ -3,6 +3,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 
 from hackfinder.models import Event
+from ._signals_util import source_signals
 from ._platforms_util import absolute, check_robots, client, current, json_response, plain, utc
 
 SOURCE = {"id": "ctftime", "name": "CTFtime", "url": "https://ctftime.org",
@@ -45,7 +46,7 @@ def collect() -> list[Event]:
         start, end = utc(row.get("start")), utc(row.get("finish"))
         if not current(start, end):
             continue
-        result.append(Event(source="ctftime", source_id=str(row["id"]), title=plain(row["title"]),
+        result.append(Event(source="ctftime", signals=source_signals("ctftime", row), source_id=str(row["id"]), title=plain(row["title"]),
             url=absolute(row.get("ctftime_url"), SOURCE["url"]) or f"https://ctftime.org/event/{row['id']}/",
             description=plain(row.get("description")), image=absolute(row.get("logo"), SOURCE["url"]),
             start=start, end=end, format="in-person" if row.get("onsite") else "online",

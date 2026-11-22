@@ -289,7 +289,7 @@ def test_app():
 
 def test_app_imports():
     code = ("import sys, hackfinder.app; bad = [m for m in sys.modules if m.split('.')[0] in "
-            "{'seleniumbase', 'playwright', 'httpx', 'selectolax'} or m.startswith('hackfinder.collectors')]; "
+            "{'seleniumbase', 'playwright', 'httpx', 'selectolax', 'geonamescache'} or m.startswith('hackfinder.collectors')]; "
             "print(bad); sys.exit(1 if bad else 0)")
     result = subprocess.run([sys.executable, "-c", code], cwd=ROOT, capture_output=True, text=True)
     assert result.returncode == 0, result.stdout + result.stderr
@@ -298,6 +298,7 @@ def test_app_imports():
 
 if __name__ == "__main__":
     os.environ.pop("DATABASE_URL", None)
+    patch("hackfinder.worker.refresh_rates").start()
     test_classification()
     test_dedupe()
     test_store()

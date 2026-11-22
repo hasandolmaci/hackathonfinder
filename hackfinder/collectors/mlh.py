@@ -41,5 +41,5 @@ def collect() -> list[Event]:
             url=urljoin(SOURCE['url'], row.get('websiteUrl') or row['url']), start=start, end=end,
             format=fmt, location=row.get('location') if fmt != 'online' else None,
             country=(row.get('venueAddress') or {}).get('country'), image=row.get('backgroundUrl'),
-            organizer=row.get('organizationName'), tags=tags, kind='hackathon', confidence=0.9, classified_by='source'))
+            organizer=row.get('organizationName'), tags=tags, signals={'mlh_member': True}, kind='hackathon', confidence=0.9, classified_by='source'))
     return result

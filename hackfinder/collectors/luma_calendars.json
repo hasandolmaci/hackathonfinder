@@ -1,0 +1,334 @@
+{
+ "comment": "Luma calendars that post hackathons, crawled in the luma scope \"calendars\" besides every calendar seen in the run. api_id from api.lu.ma/url?url=<slug> or from a discover entry. Update by hand.",
+ "calendars": [
+  {
+   "api_id": "cal-qTA84G1Wwdl14m4",
+   "slug": "cerebral-valley",
+   "name": "Cerebral Valley"
+  },
+  {
+   "api_id": "cal-4BIGfE8WhTFQj9H",
+   "slug": "ethglobal",
+   "name": "ETHGlobal"
+  },
+  {
+   "api_id": "cal-UCNcNUQEeTHdcnt",
+   "slug": "aitinkerers",
+   "name": "AI Tinkerers"
+  },
+  {
+   "api_id": "cal-qyEpCltsspbMoJR",
+   "slug": "tech-europe",
+   "name": "{Tech: Europe}"
+  },
+  {
+   "api_id": "cal-miA10DVm0JQ6nT0",
+   "slug": "agihouse",
+   "name": "AGI House"
+  },
+  {
+   "api_id": "cal-GNxoseumqYXHPf1",
+   "slug": "solana",
+   "name": "Solana events"
+  },
+  {
+   "api_id": "cal-stsx7XWvYDFTHi9",
+   "slug": "colosseum",
+   "name": "Colosseum"
+  },
+  {
+   "api_id": "cal-y1PgdAbBeb8Ep2k",
+   "slug": "hacknation",
+   "name": "Hack-Nation's Global AI Hackathons"
+  },
+  {
+   "api_id": "cal-P4o16JaHpyIPjQl",
+   "slug": "hack-nation",
+   "name": "Global AI Hackathons"
+  },
+  {
+   "api_id": "cal-KihH175xkFcbbgt",
+   "slug": "vibecoding",
+   "name": "Vibe Coding"
+  },
+  {
+   "api_id": "cal-qcbkrmXGaYXa6fA",
+   "slug": "buildersclub",
+   "name": "Builders Club"
+  },
+  {
+   "api_id": "cal-8LJYo5N7QObN2DI",
+   "slug": "encode-club",
+   "name": "Encode Club"
+  },
+  {
+   "api_id": "cal-VFzfuxD01QUFkSs",
+   "slug": "ethdenver",
+   "name": "ETHDenver 2026 Official Side Event Calendar"
+  },
+  {
+   "api_id": "cal-rISpAjPLxgGxgRm",
+   "slug": "ethindia",
+   "name": "Eth India Side Events!"
+  },
+  {
+   "api_id": "cal-cIL2FvDfGyDzLLI",
+   "slug": "ai-builders",
+   "name": "AI Builders"
+  },
+  {
+   "api_id": "cal-E74MDlDKBaeAwXK",
+   "slug": "genai-collective",
+   "name": "The AI Collective"
+  },
+  {
+   "api_id": "cal-adNP0CB4EaQa38u",
+   "slug": "aie",
+   "name": "AI Engineers"
+  },
+  {
+   "api_id": "cal-mvNH1VHlaFtSMFx",
+   "slug": "langchain",
+   "name": "LangChain Events"
+  },
+  {
+   "api_id": "cal-UJ0ktLXSPGVMFON",
+   "slug": "lovable",
+   "name": "Lovable"
+  },
+  {
+   "api_id": "cal-BHCbNUcyZTBdvrw",
+   "slug": "huggingface",
+   "name": "Hugging Face Calendar"
+  },
+  {
+   "api_id": "cal-1ebTmNwMGE6R93b",
+   "slug": "ai2",
+   "name": "Ai2"
+  },
+  {
+   "api_id": "cal-3XyuS65JPasgZ5y",
+   "name": "Devnovate"
+  },
+  {
+   "api_id": "cal-QdVQqmeiFADPQKH",
+   "name": "Hackathons with ProgramEarth"
+  },
+  {
+   "api_id": "cal-PzcaDOjPfZD7GpC",
+   "name": "Tech Incubator at Queens College Events"
+  },
+  {
+   "api_id": "cal-7Ry6hLvWASvTRF7",
+   "name": "hackaTUM"
+  },
+  {
+   "api_id": "cal-TeayqGSMzwMURnS",
+   "name": "Fintech Reloaded Hackathon"
+  },
+  {
+   "api_id": "cal-gmMOid1Rsqc3Hih",
+   "name": "ClickHouse Events"
+  },
+  {
+   "api_id": "cal-Ddd1a3n5L6iKIUG",
+   "name": "Les Hackteliers chez HETIC"
+  },
+  {
+   "api_id": "cal-fBhRw2o1Ma1Yl2V",
+   "name": "HACK//OPS"
+  },
+  {
+   "api_id": "cal-4x6MWEhsV03GNs8",
+   "name": "+81Builders"
+  },
+  {
+   "api_id": "cal-PKazQdrRmpFJSXz",
+   "name": "AI Builders"
+  },
+  {
+   "api_id": "cal-63UOFcweB97l2gc",
+   "name": "Codex Community Events"
+  },
+  {
+   "api_id": "cal-EgB2GR8mpTeEXG1",
+   "name": "localhost:nyc"
+  },
+  {
+   "api_id": "cal-Bi2xEmf2H4gSe6J",
+   "name": "CoB Hackathons"
+  },
+  {
+   "api_id": "cal-bbBgHHsIV71jJCz",
+   "name": "AWS Student Builder Group at Wilfrid Laurier University"
+  },
+  {
+   "api_id": "cal-TOpA5LAFfuDeFpu",
+   "name": "Claude Community Events"
+  },
+  {
+   "api_id": "cal-hXinY697yx9EE7H",
+   "name": "Builder Pub"
+  },
+  {
+   "api_id": "cal-wdFQbbJ0VZTU33E",
+   "name": "Builderbase Hackathons"
+  },
+  {
+   "api_id": "cal-nSOU1p5gKxEUGs7",
+   "name": "Campaign Lab"
+  },
+  {
+   "api_id": "cal-W2kVkwlsP7XVkE6",
+   "name": "Hack Ruby"
+  },
+  {
+   "api_id": "cal-hcBJgmad6joehFE",
+   "name": "Hack AI"
+  },
+  {
+   "api_id": "cal-QmTmFsJbZfy8V5e",
+   "name": "aiLights"
+  },
+  {
+   "api_id": "cal-UCCTOI5jo3Cyu52",
+   "name": "Hack & Chill"
+  },
+  {
+   "api_id": "cal-BVpgpDCgYaCqcPx",
+   "name": "Civic Tech WR"
+  },
+  {
+   "api_id": "cal-BIfGjPFqLuLbZvX",
+   "name": "the MADE (museum of art and digital entertainment)"
+  },
+  {
+   "api_id": "cal-09kcgQfLYGyy2JP",
+   "name": "Hacks/Hackers"
+  },
+  {
+   "api_id": "cal-wU3pIE70Kb9RIZv",
+   "name": "HarbourHack"
+  },
+  {
+   "api_id": "cal-9G3Tmpx932dp8TX",
+   "name": "Hackbridge"
+  },
+  {
+   "api_id": "cal-WuwP5p3R9TcbmE1",
+   "name": "Hack District"
+  },
+  {
+   "api_id": "cal-rKZGvZjZWgFjKWW",
+   "name": "n8n Community Events"
+  },
+  {
+   "api_id": "cal-JFJHOKBih28fkk3",
+   "name": "Girls Game Jam"
+  },
+  {
+   "api_id": "cal-UPHSmycxagWQrcv",
+   "name": "WomenCISO"
+  },
+  {
+   "api_id": "cal-x3SqsbENTq2M5xc",
+   "name": "LIFE HAMBURG Programmkalender"
+  },
+  {
+   "api_id": "cal-JmAbxMIliBGO4XB",
+   "name": "Humanoid Hack"
+  },
+  {
+   "api_id": "cal-jqj51opbijGPGLy",
+   "name": "Buildathons & Events"
+  },
+  {
+   "api_id": "cal-pW6N1R3FrGnGFl0",
+   "name": "Óbidos Game-Jam 26"
+  },
+  {
+   "api_id": "cal-gb38HjVUndfwrwb",
+   "name": "HD Calendar"
+  },
+  {
+   "api_id": "cal-ts91dJowp109XAF",
+   "name": "Hack West Chester"
+  },
+  {
+   "api_id": "cal-bqAGiRcc3VT4oYW",
+   "name": "SudoRoom"
+  },
+  {
+   "api_id": "cal-LVB8BmFbKqgCVCi",
+   "name": "SpaceXSI for Frankfurt, Germany"
+  },
+  {
+   "api_id": "cal-ftxaA6PDR5Tbllt",
+   "name": "C.O.D.E (Community of Developers & Engineers) ⁂"
+  },
+  {
+   "api_id": "cal-S7gDcd9Akzu62RD",
+   "name": "[SF] HackerSquad"
+  },
+  {
+   "api_id": "cal-XKRrRYCXMcOu5rJ",
+   "name": "Personal"
+  },
+  {
+   "api_id": "cal-e7HuuBIBEqc6XAX",
+   "name": "Technologia Incognita"
+  },
+  {
+   "api_id": "cal-JeNabpW57GPfgZW",
+   "name": "Personal"
+  },
+  {
+   "api_id": "cal-iWGY38gCxnEJhIi",
+   "name": "HackWimbledon"
+  },
+  {
+   "api_id": "cal-TmBaRv8WWHOPjqg",
+   "name": "Light"
+  },
+  {
+   "api_id": "cal-C6bgjNxLlGuFZ3q",
+   "name": "Product Build Day"
+  },
+  {
+   "api_id": "cal-LgMEWFTKMymDd2U",
+   "name": "Indie Hackers & Bootstrappers Vienna"
+  },
+  {
+   "api_id": "cal-Khov9Lh9ZCS1u6j",
+   "name": "Hacking HR"
+  },
+  {
+   "api_id": "cal-YsGACKB4XWwUMCs",
+   "name": "Magicball"
+  },
+  {
+   "api_id": "cal-jeylSPNEDMkuwMy",
+   "name": "Worldwide Studios"
+  },
+  {
+   "api_id": "cal-gon769OBzMlcVCo",
+   "name": "Apart Research Events"
+  },
+  {
+   "api_id": "cal-07WXNFEzUBtxxwD",
+   "name": "NewHack"
+  },
+  {
+   "api_id": "cal-yoCWwRWRLq8Cqnu",
+   "name": "HackAotearoa"
+  },
+  {
+   "api_id": "cal-XecLgKaOQumfce3",
+   "name": "Indie Hackers Lille"
+  },
+  {
+   "api_id": "cal-F3Gpzc7jXmzCIrd",
+   "name": "Hackers & Founders Santo Domingo"
+  }
+ ]
+}

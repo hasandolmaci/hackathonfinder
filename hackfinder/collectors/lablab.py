@@ -2,6 +2,7 @@
 from urllib.parse import urljoin
 from hackfinder.browser import cdp_page
 from hackfinder.models import Event
+from ._signals_util import source_signals
 from ._html_util import HTMLParser, objects, current, load
 from ._vertical_util import browser_worker, client, robots, schema_event, dt, plain
 
@@ -23,6 +24,7 @@ def parse(html: str, base_url: str) -> list[Event]:
                     description=plain(raw.get('description')), format='online' if raw.get('isOnline') else 'unknown',
                     tags=['ai'], kind='hackathon', confidence=0.9, classified_by='source')
         if event and current(event.start, event.end):
+            event.signals.update(source_signals("lablab", raw))
             events[event.url] = event
     tree = HTMLParser(html)
     for link in tree.css('main a[href*="/ai-hackathons/"]'):
@@ -35,7 +37,7 @@ def parse(html: str, base_url: str) -> list[Event]:
         url = urljoin(base_url, link.attributes['href'])
         if current(start, end) and url not in events:
             events[url] = Event(source='lablab', title=heading.text(strip=True), url=url,
-                start=start, end=end, tags=['ai'], kind='hackathon', confidence=0.9, classified_by='source')
+                start=start, end=end, signals=source_signals('lablab', {'description': link.text(separator=' ', strip=True)}), tags=['ai'], kind='hackathon', confidence=0.9, classified_by='source')
     if not events and not tree.css('main a[href*="/ai-hackathons/"]') and 'no events yet' not in tree.text().lower():
         raise RuntimeError('Starfield listing has no recognized events or explicit empty state')
     return list(events.values())

@@ -1,0 +1,75 @@
+{
+ "data": {
+  "total": 2,
+  "page_info": {
+   "has_previous_page": false,
+   "has_next_page": false,
+   "start_cursor": "W3sic2Vjb25kcyI6MTgwMzYxNjIwMCwibmFub3NlY29uZHMiOjB9LDE3N10",
+   "end_cursor": "W3sic2Vjb25kcyI6MTc5NTc0NjYwMCwibmFub3NlY29uZHMiOjB9LDE3NV0"
+  },
+  "page": [
+   {
+    "cursor": "W3sic2Vjb25kcyI6MTgwMzYxNjIwMCwibmFub3NlY29uZHMiOjB9LDE3N10",
+    "data": {
+     "id": 177,
+     "name": "HackSpark 2.0 ",
+     "description": "<p><span class=\"relative -mx-px my-[-0.2rem] rounded px-px py-[0.2rem] transition-colors duration-100 ease-in-out\">🔥 <strong>Hack Spark 2.0 2K27</strong>&nbsp;&ndash; <em>Code. Create. Conquer.</em></span><br><span class=\"relative -mx-px my-[-0.2rem] rounded px-px py-[0.2rem] transition-colors duration-100 ease-in-out\">Brace yourself for <strong>24 hours of high-voltage innovation</strong>, collab",
+     "slug": "hackspark-2-0",
+     "tagline": "Code. Create. Conquer.",
+     "hackathon_theme": "",
+     "number_of_participants": 5000,
+     "participate_types": "team",
+     "hackathon_location_type": "hybrid",
+     "banner_image": {
+      "url": "https://json.commudle.com/rails/active_storage/blobs/proxy/eyJfcmFpbHMiOnsibWVzc"
+     },
+     "min_number_of_teammates": 2,
+     "max_number_of_teammates": 4,
+     "status": "open",
+     "start_date": "2098-02-26T04:30:00.000+00:00",
+     "end_date": "2098-02-27T11:30:00.000+00:00",
+     "community": {
+      "name": "Kognix",
+      "slug": "kognix"
+     },
+     "total_prize_amount": {
+      "INR": 30000
+     },
+     "interested_members_count": 18
+    }
+   },
+   {
+    "cursor": "W3sic2Vjb25kcyI6MTc5NTc0NjYwMCwibmFub3NlY29uZHMiOjB9LDE3NV0",
+    "data": {
+     "id": 175,
+     "name": "Designathon",
+     "description": "<div id=\"model-response-message-contentr_cba5782c75fe8adf\" class=\"markdown markdown-main-panel md-content enable-luminous-fast-follows enable-updated-hr-color stronger tutor-markdown-rendering\" dir=\"ltr\" aria-busy=\"false\" aria-live=\"polite\">\r\n<div><span class=\"\" data-path-to-node=\"0,0\"><strong data-path-to-node=\"0,0\" data-index-in-node=\"0\">Designathon : By Team DesigniX &amp; IEEE GUSB</strong></s",
+     "slug": "designathon",
+     "tagline": "Igniting Creativity beyond boundaries",
+     "hackathon_theme": "",
+     "number_of_participants": 150,
+     "participate_types": "team",
+     "hackathon_location_type": "offline",
+     "banner_image": {
+      "url": "https://json.commudle.com/rails/active_storage/blobs/proxy/eyJfcmFpbHMiOnsibWVzc"
+     },
+     "min_number_of_teammates": 1,
+     "max_number_of_teammates": 4,
+     "status": "open",
+     "start_date": "2098-02-26T04:30:00.000+00:00",
+     "end_date": "2098-02-27T11:30:00.000+00:00",
+     "community": {
+      "name": "Designix - The Design Club",
+      "slug": "ardverse"
+     },
+     "total_prize_amount": {
+      "INR": 35000
+     },
+     "interested_members_count": 14
+    }
+   }
+  ]
+ },
+ "message": "Request Successful",
+ "status": 200
+}

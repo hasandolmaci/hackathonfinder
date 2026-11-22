@@ -49,10 +49,12 @@ from types import ModuleType
 COLLECTOR_IDS = [
     # hackathon platforms
     "devpost", "mlh", "devfolio", "unstop", "hackclub", "taikai", "hackerearth", "hackathoncom",
+    "allhackathons", "devnovate", "hack2skill", "commudle", "hackjunction", "wemakedevs",
     # verticals
-    "ethglobal", "lablab", "kaggle", "ctftime", "itchio",
+    "ethglobal", "lablab", "kaggle", "ctftime", "itchio", "zindi", "globalgamejam",
+    "dorahacks", "hackquest", "encodeclub",
     # general event platforms
-    "luma", "meetup",
+    "luma", "meetup", "eventbrite",
 ]
 
 

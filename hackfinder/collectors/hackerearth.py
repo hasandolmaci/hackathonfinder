@@ -1,6 +1,7 @@
 """Public feed used by HackerEarth's browser extension."""
 from urllib.parse import urljoin, urlsplit
 from hackfinder.models import Event
+from ._signals_util import source_signals
 from ._mlh_taikai_util import client, check_robots, json_response, date, upcoming, plain
 
 SOURCE = dict(id='hackerearth', name='HackerEarth', url='https://www.hackerearth.com/challenges/hackathon/', method='api', default_kind='mixed')
@@ -17,7 +18,7 @@ def collect() -> list[Event]:
             continue
         url = urljoin(SOURCE['url'], row['url'])
         kind = 'hackathon' if '/hackathon/' in urlsplit(url).path else 'coding_competition'
-        result.append(Event(source='hackerearth', source_id=urlsplit(url).path.rstrip('/').split('/')[-1],
+        result.append(Event(source='hackerearth', signals=source_signals("hackerearth", row), source_id=urlsplit(url).path.rstrip('/').split('/')[-1],
             title=row['title'], url=url, description=plain(row.get('description')), start=start, end=end,
             image=row.get('cover_image') or row.get('thumbnail'), kind=kind, confidence=0.9, classified_by='source'))
     return result

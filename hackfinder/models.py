@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -35,6 +35,10 @@ class Event(BaseModel):
     participants: Optional[int] = None
     organizer: Optional[str] = None
     tags: list[str] = Field(default_factory=list)  # domain tags: ai, web3, student, ...
+
+    # raw source evidence for the Hackfinder Score (DECISIONS.md #4), e.g.
+    # {"registrations": 1800, "featured": True, "sponsors": ["Google"], "ctf_weight": 24.5}
+    signals: dict[str, Any] = Field(default_factory=dict)
 
     # classification (filled by collector hint, finalized by classify.py)
     kind: Kind = "unknown"

@@ -2,6 +2,7 @@
 import re
 from urllib.parse import quote
 from hackfinder.models import Event
+from ._signals_util import source_signals
 from ._mlh_taikai_util import MAX_PAGES, client, check_robots, json_response, date, upcoming, plain, warn_limit
 
 SOURCE = dict(id='taikai', name='TAIKAI', url='https://taikai.network/en/hackathons', method='api', default_kind='hackathon')
@@ -38,7 +39,7 @@ def collect() -> list[Event]:
                 org = row['organization']
                 currency = (row.get('prizeCurrency') or {}).get('name')
                 amount = row.get('prize')
-                result.append(Event(source='taikai', source_id=row['id'], title=row['name'].strip(),
+                result.append(Event(source='taikai', signals=source_signals("taikai", row), source_id=row['id'], title=row['name'].strip(),
                     url=f"https://taikai.network/en/{quote(org['slug'])}/hackathons/{quote(row['slug'])}",
                     description=plain(row.get('shortDescription')), start=start, end=end,
                     registration_deadline=min(deadlines) if deadlines else None,

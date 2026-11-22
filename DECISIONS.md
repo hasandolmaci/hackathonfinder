@@ -180,3 +180,57 @@ The worker is written the same way for all three, so we can move between them la
 - **Neon free-plan limits:** frequent crawls may use up the free compute allowance, so the cadence may need widening.
 - **Beta features:** Daemons and Schedules are beta.
 - **Commercial use:** any monetisation requires Vercel Pro.
+
+## 4. Hackfinder Score (2026-11-22)
+
+The user asked for an "AI greatness score" out of 100 next to each listing. Designed by Claude Opus 5.5 and Codex GPT-6-Astra in parallel (Fable 5.2 was unavailable because it requires usage credits), with competitor research in research/competitor_features.md.
+
+### Where they agreed
+- **Name it honestly: "Hackfinder Score".** It's open rules plus statistics. With a $0 budget there's no reliable free AI model to use: GitHub Models was retired on 2026-07-30, and Gemini/Groq free quotas are variable and not guaranteed. "AI score" would overstate it.
+- **What it measures:** whether an event is worth a participant's time. Time and deadlines are not part of greatness; they belong to sorting and filtering.
+- **Where it's computed:** in the worker, `store.remerge()` after dedupe. It's stored on `events` as score, score_conf, score_detail (JSON with sub-scores, reasons, missing fields and version) and score_version.
+- **Missing data is shrunk toward a prior** (per kind and source), never scored as zero. Unknown is not the same as bad.
+- **Confidence** comes from the share of signals actually observed. Each event gets 2–3 factual reasons plus a "Missing: …" line.
+- **Different weights per kind** (hackathon, game jam, CTF, coding competition).
+- **Raw source fields** (registrations, prize counts, verified/featured flags, sponsor tiers, ticket info, CTFtime weight, etc.) must be kept in a new `Event.signals` dict. Today they're dropped.
+- **Text extraction:** sponsors, travel support, mentors, hiring, food/swag and eligibility, with negation handling. Brand names count only in a sponsor context ("sponsored by", "partners:").
+- **Prizes:** log-scaled USD, converted with free ECB reference rates. Non-cash prizes get capped points.
+- **Size:** log-scaled and given a percentile within the same source and kind, because Luma guests are not Devpost registrations. Duplicate listings are never summed.
+- **Public `/methodology` page** with the weights. This openness is our edge over the competitor's undisclosed score.
+- **Validation:** golden examples (ETHGlobal and MLH flagships, big-prize Devpost events reach 85+), monotonicity tests, per-source medians between 35 and 65, and spot checks of the top/bottom 20.
+
+### Decisions where they differed
+| Question | Opus | Astra | Decision |
+|---|---|---|---|
+| Listing completeness | Part of the total (15%) plus a spam cap | A separate "evidence" score, outside the total | **Separate.** Evidence drives confidence. When evidence is below 30, the UI shows "Not enough info" instead of a number. |
+| Tech-hub location bonus | +5 | 0 (avoid geographic bias) | **0.** Location is handled by the Near me tab. |
+| Brand halo | Tier-A organizers raise the other dimensions' priors | No forced brand floors | **A modest halo**: tier-A raises priors to the cohort's 65th percentile. It's never a floor, and evidence still wins. |
+| Dimensions | 5 | 6 | **5 dimensions** (below). Preparation is folded into evidence, because that data is sparse. |
+| Free AI extraction | Optional, feature-flagged later | Optional with hard quotas later | **Not now.** Rules only. It can be added later as an optional, cached extractor. |
+
+### Weights (hackathon / ideathon)
+| Dimension | Weight | Main inputs |
+|---|---|---|
+| Organizer & prestige | 30 | Reviewed brand/organizer list (reputation.yml, tiers A/B), MLH member, ETHGlobal, verified/featured platform flags, recurring series (past editions in our database, edition markers in the title) |
+| Community & scale | 20 | Registrations/guests/RSVPs/teams: per-source percentile blended with log scale |
+| Rewards | 20 | Cash prize in USD (log-scaled), non-cash prizes capped |
+| Support & perks | 20 | Sponsors (count saturates), travel support, mentors/workshops, hiring, food/swag |
+| Accessibility | 10 | Free entry, online/hybrid access, open eligibility. Restrictions are shown as filters and cost little. |
+
+Other kinds (P/C/R/S/A):
+- **Game jam:** 25/35/10/15/15.
+- **CTF:** 40/25/10/10/15. Prestige comes from CTFtime weight of past editions; size from team count.
+- **Coding competition:** 25/20/40/0/15. Kaggle category and reward matter most.
+
+### UI
+- A score badge next to each listing. Tiers: 80+ green, 60–79 teal, 40–59 amber, below 40 grey (not red, since low often means unknown).
+- Low confidence shows an outlined badge with "~".
+- The tooltip shows the 5 bars, the reasons, the missing fields and a link to /methodology.
+- `sort=score` and a `min_score` filter.
+
+## 5. Near me (2026-11-22)
+- **Locating events:** the worker geocodes event locations offline with the `geonamescache` package (GeoNames cities with population > 15,000, free, no API key) and stores lat/lon on events. It also fills a `places` table (city, country, lat, lon, population) used for city search.
+- **API:**
+  - `/api/hackathons?lat=&lon=&radius_km=` filters and sorts by distance (haversine).
+  - `/api/places?q=` autocompletes city names.
+- **Near me tab:** it asks for browser geolocation (with the user's permission). If that's denied or unavailable, the user types a city. It shows in-person and hybrid events by distance with a radius selector (25/50/100/250/500 km) and the usual kind/score filters. The chosen location is stored only in the browser (localStorage), never sent to a third party.

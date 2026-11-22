@@ -1,5 +1,6 @@
 """Public Devfolio search API used by the hackathon directory."""
 from hackfinder.models import Event
+from ._signals_util import source_signals
 from ._platforms_util import MAX_PAGES, absolute, check_robots, client, current, json_response, plain, utc, warn_limit
 
 SOURCE = {"id": "devfolio", "name": "Devfolio", "url": "https://devfolio.co/hackathons",
@@ -23,7 +24,7 @@ def _event(row):
     host = row.get("hosted_by")
     organizer = host.get("name") if isinstance(host, dict) else host if isinstance(host, str) else None
     mode = "hybrid" if row.get("is_hybrid") else "online" if row.get("is_online") else "in-person"
-    return Event(source="devfolio", source_id=str(row["uuid"]), title=plain(row["name"]),
+    return Event(source="devfolio", signals=source_signals("devfolio", row), source_id=str(row["uuid"]), title=plain(row["name"]),
         url=f"https://{slug}.devfolio.co/", description=plain(row.get("tagline") or row.get("desc")),
         image=absolute(row.get("cover_img") or settings.get("logo"), SOURCE["url"]),
         start=start, end=end, registration_deadline=utc(settings.get("reg_ends_at")), format=mode,

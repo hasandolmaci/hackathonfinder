@@ -2,6 +2,7 @@
 from urllib.parse import urljoin
 from hackfinder.browser import cdp_page
 from hackfinder.models import Event
+from ._signals_util import source_signals
 from ._html_util import objects, current, load
 from ._vertical_util import browser_worker, client, robots, dt
 
@@ -22,7 +23,7 @@ def parse(html: str, base_url: str) -> list[Event]:
         location = ', '.join(x for x in [city.get('name'), country] if x) or None
         url = urljoin(base_url, '/events/' + raw['slug'])
         banner = raw.get('banner') or {}
-        events[url] = Event(source='ethglobal', source_id=str(raw['id']) if raw.get('id') else raw['slug'],
+        events[url] = Event(source='ethglobal', signals=source_signals("ethglobal", raw), source_id=str(raw['id']) if raw.get('id') else raw['slug'],
             title=raw['name'], url=url, start=start, end=end,
             registration_deadline=dt(raw.get('signupDeadline')),
             format='online' if online else 'hybrid' if raw.get('medium') == 'hybrid' else 'in-person',
