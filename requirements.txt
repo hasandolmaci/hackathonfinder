@@ -1,0 +1,4 @@
+# Web app only (this is what Vercel installs). The crawler adds requirements-worker.txt.
+fastapi
+pydantic>=2
+psycopg[binary,pool]

@@ -1,0 +1,14 @@
+[project]
+name = "hackfinder"
+version = "0.1.0"
+description = "Hackathon finder: read-only API and static site; the crawler runs separately."
+requires-python = ">=3.12"
+# Web dependencies only, kept in sync with requirements.txt.
+dependencies = [
+    "fastapi",
+    "pydantic>=2",
+    "psycopg[binary,pool]",
+]
+
+[tool.vercel]
+entrypoint = "hackfinder.app:app"

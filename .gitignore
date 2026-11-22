@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.*
+.vercel/
+.claude/settings.local.json
+# Local SQLite database and old cache files
+data/
+*.db
+*.db-shm
+*.db-wal

@@ -1,0 +1,36 @@
+name: crawl-quick
+
+on:
+  schedule:
+    - cron: "17 */3 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: crawl-quick
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+      KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+      HF_HEADLESS: "1"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-worker.txt
+      - name: Check the DATABASE_URL secret
+        run: test -n "$DATABASE_URL" || { echo "::error::Add the DATABASE_URL repository secret first (see DEPLOY.md)"; exit 1; }
+      - run: pip install -r requirements-worker.txt
+      - run: python -m hackfinder.worker --pass quick

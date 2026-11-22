@@ -1,0 +1,11 @@
+.venv/
+data/
+tests/
+scripts/
+.github/
+.claude/
+__pycache__/
+*.pyc
+*.md
+sources.json
+requirements-worker.txt

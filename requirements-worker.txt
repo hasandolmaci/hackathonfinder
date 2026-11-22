@@ -1,0 +1,7 @@
+# Crawler (GitHub Actions) and local development.
+-r requirements.txt
+uvicorn
+httpx
+selectolax
+seleniumbase
+playwright
