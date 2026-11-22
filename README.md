@@ -78,6 +78,13 @@ Crawl locally:
 - `HF_HEADLESS` (1)
 - `KAGGLE_USERNAME` / `KAGGLE_KEY`: optional; Kaggle uses its official API when they are set.
 
+## Sources that block GitHub (local crawl)
+Eventbrite (HTTP 405) and Global Game Jam (Cloudflare 403) refuse requests from GitHub Actions' datacenter IPs, even from a real Chrome window. They work from a home connection, so they're not part of the GitHub crawls (`LOCAL_ONLY` in `hackfinder/worker.py`). Instead they run from your own computer and write to the same Neon database:
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\crawl_local.ps1
+```
+The first run asks for the direct Neon URL (input hidden) and saves it in `.env.local`, which git ignores. Run it whenever you like, or schedule it daily with Windows Task Scheduler. If it doesn't run, those two sources' events stay as they were until their end dates.
+
 ## Known gaps
 - Meetup is scraped from keyword search and runs only in the daily full pass. Note: this ignores Meetup's robots.txt and conflicts with its terms of service.
 - lablab.ai now redirects to Starfield Labs, which lists no events.

@@ -20,6 +20,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 import importlib
 import logging
+import os
 import re
 import sys
 import threading
@@ -37,11 +38,15 @@ PASSES = {
     "quick": ["devpost", "devfolio", "unstop", "hackclub", "ctftime", "mlh", "taikai", "hackerearth", "luma",
               "allhackathons", "zindi", "devnovate", "hack2skill", "hackquest", "commudle", "hackjunction"],
     "browser": ["ethglobal", "kaggle", "itchio", "hackathoncom", "lablab",
-                "globalgamejam", "dorahacks", "encodeclub", "wemakedevs",
-                "eventbrite"],  # falls back to Chrome when plain HTTP is refused (datacenter IPs)
-    "full": None,  # every collector
+                "dorahacks", "encodeclub", "wemakedevs"],
+    "full": None,  # every collector (minus LOCAL_ONLY when running in GitHub Actions)
+    "local": None,  # LOCAL_ONLY, run from a home computer (scripts/crawl_local.ps1)
 }
-SOURCE_TIMEOUT = {"quick": 15 * 60, "browser": 15 * 60, "full": 50 * 60}
+# Sources that block datacenter IPs (verified from GitHub Actions on 2026-11-22: Eventbrite HTTP 405
+# even to real Chrome, Global Game Jam Cloudflare 403). They work from a home connection.
+LOCAL_ONLY = ["eventbrite", "globalgamejam"]
+PASSES["local"] = LOCAL_ONLY
+SOURCE_TIMEOUT = {"quick": 15 * 60, "browser": 15 * 60, "full": 50 * 60, "local": 50 * 60}
 MAX_PARALLEL = 6
 BLOCK_BACKOFF = timedelta(hours=2)
 _BLOCKED = re.compile(r"\b(403|429)\b|forbidden|too many requests", re.I)
@@ -202,8 +207,9 @@ def run(pass_name: str, only: list[str] | None = None, collectors: dict[str, Mod
     if collectors is None:
         collectors = load()
     wanted = PASSES[pass_name]
+    skip = set(LOCAL_ONLY) if pass_name == "full" and os.getenv("GITHUB_ACTIONS") == "true" and not only else set()
     selected = {cid: mod for cid, mod in collectors.items()
-                if (wanted is None or cid in wanted) and (not only or cid in only)}
+                if (wanted is None or cid in wanted) and (not only or cid in only) and cid not in skip}
     db.init(places=True)
     refresh_rates()
     now = utcnow()
