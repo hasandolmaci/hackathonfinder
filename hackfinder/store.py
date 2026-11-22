@@ -200,7 +200,8 @@ def record_run(conn: db.Connection, *, pass_name: str, source: str, scope_key: s
 
 
 def rescore(conn: db.Connection, context=None) -> int:
-    """Refresh every stored score and coordinate, including historical editions."""
+    """Refresh every stored score, coordinate, category and flag, including historical editions."""
+    from .categories import categorize, flags, pack
     from .geo import geocode
     from .score import Context, VERSION, score_event
 
@@ -216,8 +217,11 @@ def rescore(conn: db.Connection, context=None) -> int:
     for row, event in zip(rows, events):
         result = score_event(event, context)
         lat, lon = geocode(event.location, event.country, event.format)
+        cats, event_flags = categorize(event), flags(event)
+        data = {**db.loads(row["data"]), "categories": cats, "flags": event_flags}
         updates.append((result["score"], result["score_confidence"], db.dumps(result["score_detail"]),
-                        VERSION, lat, lon, row["key"]))
+                        VERSION, lat, lon, pack(cats), pack(event_flags), db.dumps(data), row["key"]))
     conn.executemany("""UPDATE events SET score = ?, score_conf = ?, score_detail = CAST(? AS JSONTYPE),
-                        score_version = ?, lat = ?, lon = ? WHERE key = ?""", updates)
+                        score_version = ?, lat = ?, lon = ?, cats = ?, flags = ?, data = CAST(? AS JSONTYPE)
+                        WHERE key = ?""", updates)
     return len(updates)

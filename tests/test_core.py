@@ -250,6 +250,8 @@ def test_app():
                               "Mystery Hackathon"], titles
             assert result["total"] == 5 and result["page"] == 1 and result["per_page"] == 100
             assert result["events"][0]["first_seen"] and result["events"][0]["last_seen"]
+            assert all(isinstance(e["categories"], list) and isinstance(e["flags"], list) for e in result["events"])
+            assert "ai" in {c for e in result["events"] if e["title"] == "AI Build Night" for c in e["categories"]}
             assert result["updated_at"] and result["sources"][0]["id"] == "luma"
             desc = [e["title"] for e in client.get("/api/hackathons?order=desc").json()["events"]]
             assert desc == ["Future Hackathon", "AI Build Night", "Soon 100% Hackathon", "Ongoing Hackathon",

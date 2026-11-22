@@ -18,6 +18,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from . import db
+from .categories import CATEGORIES, NEW_DAYS, TYPES, categorize, flags, unpack
 
 ROOT = Path(__file__).resolve().parent.parent
 STATIC = ROOT / "static"
@@ -98,10 +99,50 @@ def _like(text: str) -> str:
     return f"%{escaped}%"
 
 
+def _ids(value: str | None, allowed: dict) -> tuple:
+    """Comma-separated ids, unknown ones dropped, sorted so cache keys are stable."""
+    return tuple(sorted({v.strip() for v in (value or "").split(",") if v.strip() in allowed}))
+
+
+def _has(column: str, value: str) -> str:
+    return f"{column} LIKE '%,{value},%'"  # value is a validated taxonomy id, never user text
+
+
+def _new_cutoff(now: datetime) -> str:
+    return _iso(now - timedelta(days=NEW_DAYS))
+
+
+def _taxonomy(row: dict, now: datetime) -> tuple[list, list]:
+    """Categories and flags from the indexed columns (computed on the fly before the first rescore)."""
+    if row.get("cats") is None or row.get("flags") is None:
+        from .models import Event
+        event = Event.model_validate(db.loads(row["data"]))
+        cats, found = categorize(event), flags(event)
+    else:
+        cats, found = unpack(row["cats"]), unpack(row["flags"])
+    if row["first_seen"] >= _new_cutoff(now):
+        found = [*found, "new"]
+    return cats, found
+
+
+def _foryou(row: dict, interests: tuple) -> float:
+    hits = sum(1 for i in interests if f",{i}," in (row["cats"] or ","))
+    return (45 if row["score"] is None else row["score"]) + 12 * min(hits, 2)
+
+
 def _listing(kinds: tuple, format: str | None, q: str, days: str, sort: str, order: str,
-             page: int, per_page: int, min_score=None, lat=None, lon=None, radius_km=100) -> dict:
+             page: int, per_page: int, min_score=None, lat=None, lon=None, radius_km=100,
+             categories: tuple = (), types: tuple = (), interests: tuple = ()) -> dict:
     now = utcnow()
     where, params = _upcoming_where(now, list(kinds))
+    if categories:
+        where += " AND (" + " OR ".join(_has("cats", c) for c in categories) + ")"
+    for kind_flag in types:
+        if kind_flag == "new":
+            where += " AND first_seen >= ?"
+            params.append(_new_cutoff(now))
+        else:
+            where += " AND " + _has("flags", kind_flag)
     if format:
         where += " AND format = ?"
         params.append(format)
@@ -138,7 +179,7 @@ def _listing(kinds: tuple, format: str | None, q: str, days: str, sort: str, ord
                     f"CASE WHEN start_at >= ? THEN start_at END {direction}, "
                     f"COALESCE(end_at, start_at) ASC, key")
         order_params = [stamp, stamp]
-    elif sort == "distance":
+    elif sort in {"distance", "foryou"}:
         order_by, order_params = "key", []
     else:
         column = {"prize": "prize_usd", "participants": "participants", "score": "score", "new": "first_seen"}[sort]
@@ -146,8 +187,12 @@ def _listing(kinds: tuple, format: str | None, q: str, days: str, sort: str, ord
         order_params = []
     with db.connect() as conn:
         total = int(conn.fetchone(f"SELECT COUNT(*) AS n FROM events WHERE {where}", params)["n"])
-        select = "data, first_seen, last_seen, score, score_conf, score_detail, lat, lon"
-        if lat is None:
+        select = "data, first_seen, last_seen, score, score_conf, score_detail, lat, lon, cats, flags, start_at"
+        if sort == "foryou" and lat is None:
+            rows = conn.fetchall(f"SELECT {select} FROM events WHERE {where}", params)
+            rows.sort(key=lambda r: (-_foryou(r, interests), r["start_at"] or "9", r["first_seen"]))
+            rows = rows[(page - 1) * per_page:page * per_page]
+        elif lat is None:
             rows = conn.fetchall(f"SELECT {select} FROM events WHERE {where} ORDER BY {order_by} LIMIT ? OFFSET ?",
                                  [*params, *order_params, per_page, (page - 1) * per_page])
         else:
@@ -156,7 +201,9 @@ def _listing(kinds: tuple, format: str | None, q: str, days: str, sort: str, ord
             for row in rows:
                 row["distance_km"] = _distance(lat, lon, row["lat"], row["lon"])
             rows = [row for row in rows if row["distance_km"] <= radius_km]
-            if sort == "distance":
+            if sort == "foryou":
+                rows.sort(key=lambda r: (-_foryou(r, interests), r["distance_km"]))
+            elif sort == "distance":
                 rows.sort(key=lambda row: row["distance_km"], reverse=order == "desc")
             total = len(rows)
             rows = rows[(page - 1) * per_page:page * per_page]
@@ -168,6 +215,7 @@ def _listing(kinds: tuple, format: str | None, q: str, days: str, sort: str, ord
                  "score": row["score"], "score_tier": tier(row["score"]),
                  "score_confidence": row["score_conf"] or "low", "score_detail": db.loads(row["score_detail"]),
                  "lat": row["lat"], "lon": row["lon"]}
+        event["categories"], event["flags"] = _taxonomy(row, now)
         # Extraction-only source text is never part of the public listing.
         event["signals"] = {k: v for k, v in event.get("signals", {}).items() if k != "text"}
         if lat is not None:
@@ -181,21 +229,53 @@ def _listing(kinds: tuple, format: str | None, q: str, days: str, sort: str, ord
 def hackathons(response: Response, kinds: str = "hackathon",
                format: str | None = Query(None, pattern="^(online|in-person|hybrid)$"),
                q: str = "", days: str = Query("all", pattern="^(7|30|all)$"),
-               sort: str | None = Query(None, pattern="^(start|prize|participants|score|new|distance)$"),
+               sort: str | None = Query(None, pattern="^(start|prize|participants|score|new|distance|foryou)$"),
                order: str | None = Query(None, pattern="^(asc|desc)$"),
                page: int = Query(1, ge=1), per_page: int = Query(100, ge=1, le=500),
                min_score: int | None = Query(None, ge=0, le=100),
                lat: float | None = Query(None, ge=-90, le=90),
                lon: float | None = Query(None, ge=-180, le=180),
-               radius_km: float = Query(100, gt=0, le=2000)):
+               radius_km: float = Query(100, gt=0, le=2000),
+               categories: str = "", types: str = "", interests: str = ""):
     response.headers["Cache-Control"] = CDN_CACHE
     if (lat is None) != (lon is None) or (sort == "distance" and lat is None):
         raise HTTPException(422, "Distance search requires both lat and lon")
     sort = sort or ("distance" if lat is not None else "start")
-    order = order or ("desc" if sort in {"score", "new"} else "asc")
+    order = order or ("desc" if sort in {"score", "new", "foryou"} else "asc")
     selected = tuple(sorted({kind.strip() for kind in kinds.split(",") if kind.strip()} - HIDDEN_KINDS))
-    key = ("hackathons", selected, format, q, days, sort, order, page, per_page, min_score, lat, lon, radius_km)
-    return _cached(key, lambda: _listing(selected, format, q, days, sort, order, page, per_page, min_score, lat, lon, radius_km))
+    cats, kinds_on, likes = _ids(categories, CATEGORIES), _ids(types, TYPES), _ids(interests, CATEGORIES)
+    key = ("hackathons", selected, format, q, days, sort, order, page, per_page, min_score, lat, lon, radius_km,
+           cats, kinds_on, likes if sort == "foryou" else ())
+    return _cached(key, lambda: _listing(selected, format, q, days, sort, order, page, per_page, min_score, lat, lon,
+                                         radius_km, cats, kinds_on, likes))
+
+
+def _category_counts(kinds: tuple, days: str) -> dict:
+    now = utcnow()
+    where, params = _upcoming_where(now, list(kinds))
+    if days != "all":
+        where += " AND (start_at IS NULL OR start_at <= ?)"
+        params.append(_iso(now + timedelta(days=int(days))))
+    with db.connect() as conn:
+        rows = conn.fetchall(f"SELECT data, cats, flags, first_seen FROM events WHERE {where}", params)
+    counts, flag_counts = dict.fromkeys(CATEGORIES, 0), dict.fromkeys(TYPES, 0)
+    for row in rows:
+        cats, found = _taxonomy(row, now)
+        for name in cats:
+            counts[name] += 1
+        for name in found:
+            flag_counts[name] += 1
+    order = list(CATEGORIES)
+    ranked = sorted(CATEGORIES, key=lambda c: (-counts[c], order.index(c)))
+    return {"categories": [{"id": c, "name": CATEGORIES[c], "count": counts[c]} for c in ranked],
+            "types": [{"id": t, "name": name, "count": flag_counts[t]} for t, name in TYPES.items()]}
+
+
+@app.get("/api/categories")
+def category_list(response: Response, kinds: str = "hackathon", days: str = Query("all", pattern="^(7|30|all)$")):
+    response.headers["Cache-Control"] = CDN_CACHE
+    selected = tuple(sorted({kind.strip() for kind in kinds.split(",") if kind.strip()} - HIDDEN_KINDS))
+    return _cached(("categories", selected, days), lambda: _category_counts(selected, days))
 
 
 def _stats() -> dict:

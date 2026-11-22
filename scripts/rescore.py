@@ -1,4 +1,4 @@
-"""Recompute scores and coordinates without crawling; print a calibration report."""
+"""Recompute scores, coordinates, categories and flags without crawling; print a calibration report."""
 from collections import defaultdict
 from pathlib import Path
 from statistics import median
@@ -6,6 +6,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from hackfinder import db, store
+from hackfinder.categories import CATEGORIES, unpack
 
 
 def report(conn):
@@ -37,6 +38,23 @@ def report(conn):
             print_row(row)
 
 
+def taxonomy_report(conn, sample=15):
+    """Category coverage, counts per category and flag, and a random sample of hackathons."""
+    import random
+    rows = [r for r in conn.fetchall("SELECT title, cats, flags FROM events WHERE status = 'active' AND kind = 'hackathon'")]
+    covered = sum(bool(unpack(r["cats"])) for r in rows)
+    print(f"\nCategories: {covered}/{len(rows)} active hackathons have >= 1 ({covered / max(1, len(rows)):.0%})")
+    for name, counter in (("category", defaultdict(int)), ("flag", defaultdict(int))):
+        for row in rows:
+            for value in unpack(row["cats" if name == "category" else "flags"]):
+                counter[value] += 1
+        print(f"By {name}:", ", ".join(f"{k} {v}" for k, v in sorted(counter.items(), key=lambda kv: -kv[1])))
+    random.seed(7)
+    print("\nRandom hackathons: title | categories | flags")
+    for row in random.sample(rows, min(sample, len(rows))):
+        print(f"{row['title']} | {','.join(unpack(row['cats'])) or '-'} | {','.join(unpack(row['flags'])) or '-'}")
+
+
 def print_row(row):
     detail = db.loads(row['score_detail']) if row['score_detail'] else {}
     reasons = '; '.join(detail.get('reasons', []))
@@ -53,6 +71,7 @@ def main():
         store.rescore(conn)
         print('\nAFTER')
         report(conn)
+        taxonomy_report(conn)
     db.close()
 
 
