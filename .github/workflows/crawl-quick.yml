@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "17 */3 * * *"
   workflow_dispatch:
+    inputs:
+      only:
+        description: "Optional: comma-separated source ids to crawl (e.g. eventbrite,globalgamejam)"
+        required: false
+        default: ""
 
 concurrency:
   group: crawl-quick
@@ -33,4 +38,4 @@ jobs:
       - name: Check the DATABASE_URL secret
         run: test -n "$DATABASE_URL" || { echo "::error::Add the DATABASE_URL repository secret first (see DEPLOY.md)"; exit 1; }
       - run: pip install -r requirements-worker.txt
-      - run: python -m hackfinder.worker --pass quick
+      - run: python -m hackfinder.worker --pass quick ${{ inputs.only && format('--only {0}', inputs.only) || '' }}

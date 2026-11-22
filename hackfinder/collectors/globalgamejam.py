@@ -83,8 +83,13 @@ def _pages(page, year, params, seen):
 
 def _collect():
     with cdp_page() as page:
-        page.goto(BASE + "/", wait_until="domcontentloaded", timeout=30000)
-        page.wait_for_selector("main", timeout=15000)
+        resp = page.goto(BASE + "/", wait_until="domcontentloaded", timeout=30000)
+        try:  # an automatic Cloudflare check can take a while to clear by itself
+            page.wait_for_selector("main", timeout=40000)
+        except Exception:
+            check_block(page)
+            raise RuntimeError(f"no page content at {page.url} (HTTP {resp.status if resp else '?'}, "
+                               f"title {page.title()!r})") from None
         check_block(page)
         text = page.locator("main").inner_text(timeout=5000)
         start, end = jam_dates(re.sub(r"\s+", " ", text or ""))
