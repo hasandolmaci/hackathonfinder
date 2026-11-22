@@ -135,7 +135,8 @@ class Connection:
     def _sql(self, sql: str) -> str:
         for token, name in _TYPES[self.kind].items():
             sql = sql.replace(token, name)
-        return sql.replace("?", "%s") if self.kind == "postgres" else sql
+        # psycopg treats every "%" as a placeholder marker, so literal ones (LIKE '%,ai,%') become "%%".
+        return sql.replace("%", "%%").replace("?", "%s") if self.kind == "postgres" else sql
 
     def execute(self, sql: str, params: Iterable[Any] = ()):
         return self.raw.execute(self._sql(sql), tuple(params))
