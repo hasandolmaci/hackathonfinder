@@ -4,8 +4,9 @@
 #   powershell -NoProfile -ExecutionPolicy Bypass -File scripts\crawl_local.ps1
 #
 # First run: asks for the DIRECT Neon URL (hidden) and saves it in .env.local (git-ignored).
+# -Only eventbrite|globalgamejam: crawl just one of them.
 # -Scheduled (used by the weekly Windows task): never prompts; output goes to data\crawl_local.log.
-param([switch]$Scheduled)
+param([switch]$Scheduled, [string]$Only = '')
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
@@ -33,14 +34,16 @@ if (-not $line) { Write-Host "No DATABASE_URL in $envFile" -ForegroundColor Red;
 $env:DATABASE_URL = $line.Substring('DATABASE_URL='.Length)
 $env:PYTHONIOENCODING = 'utf-8'
 $python = Join-Path $root '.venv\Scripts\python.exe'
+$workerArgs = @('-m', 'hackfinder.worker', '--pass', 'local')
+if ($Only) { $workerArgs += @('--only', $Only) }
 try {
     if ($Scheduled) {
         $ErrorActionPreference = 'Continue'  # Windows PowerShell wraps native stderr lines as errors
         "=== $(Get-Date -Format s) local crawl ===" | Out-File -Append -Encoding utf8 (Join-Path $root 'data\crawl_local.log')
-        & $python -m hackfinder.worker --pass local 2>&1 | ForEach-Object { "$_" } |
+        & $python @workerArgs 2>&1 | ForEach-Object { "$_" } |
             Out-File -Append -Encoding utf8 (Join-Path $root 'data\crawl_local.log')
     } else {
-        & $python -m hackfinder.worker --pass local
+        & $python @workerArgs
     }
     exit $LASTEXITCODE
 } finally {

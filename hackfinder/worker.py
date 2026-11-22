@@ -216,7 +216,7 @@ def run(pass_name: str, only: list[str] | None = None, collectors: dict[str, Mod
     with db.connect() as conn:
         for cid, module in collectors.items():
             store.register_source(conn, {**module.SOURCE, "id": cid})
-        if pass_name != "full":  # the daily full pass always retries blocked sources
+        if pass_name not in ("full", "local"):  # full and local passes always retry blocked sources
             for cid in [cid for cid in selected if _backed_off(conn, cid, now)]:
                 log.warning("%s skipped: backing off after a block", cid)
                 del selected[cid]
