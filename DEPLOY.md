@@ -33,7 +33,7 @@ You need about 30 minutes. You don't need a credit card.
    - Framework preset: Vercel detects **FastAPI** from `pyproject.toml` (`[tool.vercel] entrypoint = "hackfinder.app:app"`). Leave the build settings empty.
    - Click **Deploy**. The first deployment works, but the API has no database yet, so the page shows "Data is temporarily unavailable". That's expected.
 3. Open the project → **Storage** tab → **Create Database** → **Neon** (Serverless Postgres) → **Continue**.
-   - Plan: **Free**. Pick the region closest to you (or to Vercel's default region, Washington D.C., `iad1`).
+   - Plan: **Free**. Region: **AWS Europe Central 1 (Frankfurt)**; `vercel.json` runs the website functions in Frankfurt (`fra1`) too, so they sit next to the database.
    - Connect it to your project for all environments (Production, Preview, Development).
    - Vercel now adds `DATABASE_URL` (the **pooled** URL; its host contains `-pooler`) and `DATABASE_URL_UNPOOLED` (the **direct** URL) to the project's environment variables.
 4. Copy the direct URL for step 3: **Settings** → **Environment Variables** → `DATABASE_URL_UNPOOLED` → reveal and copy. It looks like `postgresql://user:password@ep-something.region.aws.neon.tech/neondb?sslmode=require`.
