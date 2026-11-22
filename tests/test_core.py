@@ -45,8 +45,8 @@ def test_classification():
         "Game Jam": "game_jam", "Community Jam": "game_jam",
         "Capture the flag": "ctf", "CTF finals": "ctf", "Ideathon": "ideathon",
         "Coding competition": "coding_competition",
-        "Info session about the hackathon": "other", "Hackathon workshop": "other",
-        "AI meetup": "other", "Hackathon webinar": "other", "Local gathering": "unknown",
+        "Info session about the hackathon": "info_session", "Hackathon workshop": "workshop",
+        "AI meetup": "meetup", "Hackathon webinar": "talk", "Local gathering": "unknown",
     }
     for title, kind in cases.items():
         result = classify(event(title), mixed)

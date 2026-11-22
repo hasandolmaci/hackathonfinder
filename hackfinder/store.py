@@ -115,24 +115,47 @@ def _search_text(event: Event) -> str:
     return " ".join(p for p in parts if p).casefold()
 
 
-def remerge(conn: db.Connection, now: datetime | None = None) -> int:
+def _source_metas() -> dict[str, dict]:
+    """Collector SOURCE dicts, for reclassifying stored rows. Empty when collectors cannot be imported."""
+    try:
+        from .worker import load
+        return {cid: {**module.SOURCE, "id": cid} for cid, module in load().items()}
+    except Exception:
+        return {}
+
+
+def reclassify(row: dict, metas: dict[str, dict]) -> Event:
+    """Re-run classify() on a source row's raw event so new rules apply without re-crawling."""
+    from .classify import classify
+    event = Event.model_validate(db.loads(row["data"]))
+    if not row["raw"]:
+        return event
+    raw = Event.model_validate(db.loads(row["raw"]))
+    result = classify(raw, metas.get(row["source"], {"id": row["source"]}))
+    return event.model_copy(update=dict(kind=result.kind, confidence=result.confidence,
+                                        classified_by=result.classified_by))
+
+
+def remerge(conn: db.Connection, now: datetime | None = None, reclassify_rows: bool = True) -> int:
     """Rebuild the merged events table from active source rows. Returns active event count."""
     now = now or utcnow()
     stamp, cutoff = iso(now), day_start(now)
-    rows = conn.fetchall("SELECT source, ident, event_key, data, first_seen, last_seen FROM event_sources WHERE active = TRUE")
+    rows = conn.fetchall("SELECT source, ident, event_key, data, raw, first_seen, last_seen FROM event_sources WHERE active = TRUE")
     seen = {(r["source"], r["ident"]): (r["first_seen"], r["last_seen"]) for r in rows}
     first_by_key: dict[str, str] = {}
     for row in rows:
         first = first_by_key.get(row["event_key"])
         first_by_key[row["event_key"]] = min(first, row["first_seen"]) if first else row["first_seen"]
-    current = [e for e in (Event.model_validate(db.loads(r["data"])) for r in rows) if not _past(e, cutoff)]
+    metas = _source_metas() if reclassify_rows else {}
+    events_by_row = [reclassify(r, metas) if reclassify_rows else Event.model_validate(db.loads(r["data"])) for r in rows]
+    current = [e for e in events_by_row if not _past(e, cutoff)]
     existing = {r["key"]: r["first_seen"] for r in conn.fetchall("SELECT key, first_seen FROM events")}
     from .score import Context, prize_usd
     history = [Event.model_validate(db.loads(r["data"])) for r in conn.fetchall("SELECT data FROM events")]
     rate_row = conn.fetchone("SELECT data FROM score_cache WHERE key = 'ecb'")
     rates = db.loads(rate_row["data"])["rates"] if rate_row else None
     recent = iso(now - timedelta(days=180))
-    cohort = [Event.model_validate(db.loads(r["data"])) for r in rows if r["last_seen"] >= recent]
+    cohort = [e for r, e in zip(rows, events_by_row) if r["last_seen"] >= recent]
     context = Context([e for e in cohort if not _past(e, cutoff)], history, rates)
     merged = {}
     for event in dedupe(current):

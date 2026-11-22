@@ -29,7 +29,8 @@ WEIGHTS = {kind: dict(zip(DIMS, values)) for kind, values in {
     "hackathon": (30, 20, 20, 20, 10), "ideathon": (30, 20, 20, 20, 10),
     "game_jam": (25, 35, 10, 15, 15), "ctf": (40, 25, 10, 10, 15),
     "coding_competition": (25, 20, 40, 0, 15), "other": (30, 20, 20, 20, 10),
-    "unknown": (30, 20, 20, 20, 10)}.items()}
+    "talk": (30, 20, 20, 20, 10), "meetup": (30, 20, 20, 20, 10), "workshop": (30, 20, 20, 20, 10),
+    "info_session": (30, 20, 20, 20, 10), "unknown": (30, 20, 20, 20, 10)}.items()}
 REPUTATION = json.loads(Path(__file__).with_name("reputation.json").read_text(encoding="utf-8-sig"))
 COUNTS = {"registrations", "guests", "rsvps", "teams", "joined", "entries", "capacity", "participants"}
 # Units per EUR; used only when the cached ECB table is unavailable.
@@ -251,7 +252,7 @@ def score_event(event, context=None):
                 break
     value = round(raw_value) if evidence >= 30 else None
     # Non-building listings have no demonstrated participant value as hackathons.
-    if event.kind == "other" and value is not None:
+    if event.kind in {"other", "talk", "meetup", "workshop", "info_session"} and value is not None:
         value = min(value, 35)
     missing = [d for d in DIMS if d not in obs and weights[d]]
     if not reasons:

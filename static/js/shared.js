@@ -1,4 +1,10 @@
 export const kinds = {hackathon:'Hackathons',game_jam:'Game jams',ctf:'CTFs',coding_competition:'Coding competitions',ideathon:'Ideathons'};
+export const kindLabels = {hackathon:'Hackathon',game_jam:'Game jam',ctf:'CTF',coding_competition:'Coding competition',ideathon:'Ideathon',talk:'Talk',meetup:'Meetup',workshop:'Workshop',info_session:'Info session'};
+export const kindGroups = [['Talks & meetups',['talk','meetup','info_session']],['Workshops',['workshop']]];
+export const kindToggles = [...Object.entries(kinds).map(([id,name])=>[name,[id]]),...kindGroups];
+export const kindToggleHtml = (checked=()=>false)=>kindToggles.map(([name,ids])=>`<label class="kind-option"><input type="checkbox" value="${ids[0]}" data-kinds="${ids.join(',')}"${checked(ids)?' checked':''}>${name}</label>`).join('');
+export const kindsFrom=selector=>[...document.querySelectorAll(selector)].flatMap(i=>i.checked?i.dataset.kinds.split(','):[]);
+export const hiddenKinds = kindGroups.flatMap(g=>g[1]);;
 export const sourceInfo = [ ['devpost','Devpost','devpost.com'],['mlh','MLH','mlh.com'],['devfolio','Devfolio','devfolio.co'],['unstop','Unstop','unstop.com'],['hackclub','Hack Club','hackclub.com'],['taikai','TAIKAI','taikai.network'],['hackerearth','HackerEarth','hackerearth.com'],['hackathoncom','Hackathon.com','hackathon.com'],['ethglobal','ETHGlobal','ethglobal.com'],['lablab','lablab.ai','lablab.ai'],['kaggle','Kaggle','kaggle.com'],['ctftime','CTFtime','ctftime.org'],['itchio','itch.io','itch.io'],['luma','Luma','luma.com'],['meetup','Meetup','meetup.com'] ].map(([id,name,host])=>({id,name,host,status:'never',count:0,error:null}));
 export const esc = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function safeURL(value){try{const u=new URL(value);return ['http:','https:'].includes(u.protocol)?u.href:'#';}catch{return '#';}}

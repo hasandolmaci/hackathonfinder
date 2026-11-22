@@ -6,7 +6,8 @@ from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, Field
 
-Kind = Literal["hackathon", "game_jam", "ctf", "coding_competition", "ideathon", "other", "unknown"]
+Kind = Literal["hackathon", "game_jam", "ctf", "coding_competition", "ideathon", "talk", "meetup", "workshop",
+            "info_session", "other", "unknown"]
 Format = Literal["online", "in-person", "hybrid", "unknown"]
 
 

@@ -81,7 +81,7 @@ def main():
     with db.connect() as conn:
         print('BEFORE')
         report(conn)
-        store.rescore(conn)
+        store.remerge(conn)  # reclassifies stored rows, rebuilds events and rescores
         print('\nAFTER')
         report(conn)
         taxonomy_report(conn)
