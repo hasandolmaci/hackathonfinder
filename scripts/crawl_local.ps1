@@ -4,10 +4,20 @@
 #   powershell -NoProfile -ExecutionPolicy Bypass -File scripts\crawl_local.ps1
 #
 # First run: asks for the DIRECT Neon URL (hidden) and saves it in .env.local (git-ignored).
+# -Scheduled (used by the weekly Windows task): never prompts; output goes to data\crawl_local.log.
+param([switch]$Scheduled)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 $envFile = Join-Path $root '.env.local'
+if ($Scheduled) {
+    New-Item -ItemType Directory -Force (Join-Path $root 'data') | Out-Null
+    if (-not (Test-Path $envFile)) {
+        "$(Get-Date -Format s) No $envFile yet: run this script once by hand to save the Neon URL." |
+            Out-File -Append -Encoding utf8 (Join-Path $root 'data\crawl_local.log')
+        exit 1
+    }
+}
 
 if (-not (Test-Path $envFile)) {
     Write-Host 'Paste the DIRECT Neon connection string (Connection pooling OFF). Input is hidden.' -ForegroundColor Cyan
@@ -22,8 +32,16 @@ $line = Get-Content $envFile | Where-Object { $_ -like 'DATABASE_URL=*' } | Sele
 if (-not $line) { Write-Host "No DATABASE_URL in $envFile" -ForegroundColor Red; exit 1 }
 $env:DATABASE_URL = $line.Substring('DATABASE_URL='.Length)
 $env:PYTHONIOENCODING = 'utf-8'
+$python = Join-Path $root '.venv\Scripts\python.exe'
 try {
-    & (Join-Path $root '.venv\Scripts\python.exe') -m hackfinder.worker --pass local
+    if ($Scheduled) {
+        $ErrorActionPreference = 'Continue'  # Windows PowerShell wraps native stderr lines as errors
+        "=== $(Get-Date -Format s) local crawl ===" | Out-File -Append -Encoding utf8 (Join-Path $root 'data\crawl_local.log')
+        & $python -m hackfinder.worker --pass local 2>&1 | ForEach-Object { "$_" } |
+            Out-File -Append -Encoding utf8 (Join-Path $root 'data\crawl_local.log')
+    } else {
+        & $python -m hackfinder.worker --pass local
+    }
     exit $LASTEXITCODE
 } finally {
     Remove-Item Env:DATABASE_URL -ErrorAction SilentlyContinue
