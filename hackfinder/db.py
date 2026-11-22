@@ -12,6 +12,7 @@ JSON columns are JSONB on Postgres and TEXT on SQLite; write them with
 """
 from __future__ import annotations
 
+import atexit
 from contextlib import contextmanager
 import json
 import os
@@ -175,6 +176,7 @@ def _get_pool():
             _pool = ConnectionPool(url(), min_size=1, max_size=_max_connections, open=True,
                                    check=ConnectionPool.check_connection, name="hackfinder",
                                    kwargs={"row_factory": dict_row, "prepare_threshold": None})
+            atexit.register(close)  # stop pool threads cleanly when a script or worker exits
         return _pool
 
 
