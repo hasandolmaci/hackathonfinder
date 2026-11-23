@@ -1,0 +1,103 @@
+{
+  "type": "data",
+  "nodes": [
+    {
+      "type": "data",
+      "data": [
+        {
+          "brandThemePreference": 1,
+          "viewerTimeZone": 2,
+          "dateTimeNow": 3,
+          "cacheIdentity": 4,
+          "authIdentityDiagnostic": 5
+        },
+        "light",
+        null,
+        [
+          "Date",
+          "2098-11-23T02:23:48.233Z"
+        ],
+        {
+          "primaryUserId": 2,
+          "primarySessionRevision": 2,
+          "demoDayPrincipal": 2
+        },
+        {
+          "serverPrimarySessionState": 6
+        },
+        "cookie-missing"
+      ],
+      "uses": {
+        "dependencies": [
+          "app:session"
+        ]
+      }
+    },
+    {
+      "type": "data",
+      "data": [
+        {
+          "currentEvent": 1,
+          "user": 7
+        },
+        {
+          "eventType": 2,
+          "name": 3,
+          "phase": 4,
+          "emoji": 5,
+          "participantCount": 6,
+          "countdownTarget": 7,
+          "countdownLabel": 7,
+          "bannerImageUrl": 8,
+          "smallBannerImageUrl": 8,
+          "landingPageUrl": 9,
+          "headline": 10,
+          "description": 11,
+          "ctaText": 12,
+          "ctaUrl": 13,
+          "programs": 14,
+          "totalBuilders": 23
+        },
+        "hackathon",
+        "Crypto World's Fair",
+        "judging",
+        "🎡",
+        11650,
+        null,
+        "https://static.narrative-violation.com/crypto-worlds-fair-banner-static-large.webp",
+        "/worldsfair",
+        "Crypto World's Fair Judging Underway",
+        "The Crypto World's Fair Hackathon has ended. Winners will be announced soon.",
+        "View Projects",
+        "/arena/projects/explore?hackathonId=7",
+        {
+          "hackathon": 15,
+          "eternal": 18
+        },
+        {
+          "name": 3,
+          "active": 16,
+          "phase": 4,
+          "label": 17,
+          "landingPageUrl": 9
+        },
+        true,
+        "Judging",
+        {
+          "active": 16,
+          "label": 19,
+          "landingPageUrl": 20,
+          "endDate": 21,
+          "participantCount": 22
+        },
+        "Open",
+        "/eternal",
+        "2099-03-21T06:59:00.000Z",
+        184,
+        119287
+      ],
+      "uses": {}
+    },
+    null
+  ]
+}

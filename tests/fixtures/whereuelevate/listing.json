@@ -1,0 +1,357 @@
+{
+  "result": {
+    "content": [
+      {
+        "drillId": "b2ae7a93-27cf-4675-a8b2-b26ae104dc8d",
+        "drillName": "Nationwide Case Study Competitions by Grant Thornton Bharat",
+        "customUrl": "nationwide-case-study-competitions-by-grant-thornton-bharat-2098",
+        "status": "LIVE",
+        "lifecycleStatus": "LIVE",
+        "category": "HACKATHON",
+        "subCategory": "CASESTUDY",
+        "drillType": "PROBLEM_BASED",
+        "participationType": "INDIVIDUAL",
+        "mode": "ONLINE",
+        "purpose": "INNOVATION",
+        "hidden": false,
+        "showcase": true,
+        "paid": false,
+        "mediaAssets": {
+          "assets": [
+            {
+              "type": "BANNER",
+              "altText": "Banner Image",
+              "version": "",
+              "variants": [
+                {
+                  "device": "DESKTOP",
+                  "width": 1920,
+                  "height": 400,
+                  "url": "https://wuelev8-user-bucket-prod.s3.ap-south-1.amazonaws.com/branding/OGImage-54fcd971-c958-40c5-97a8-2928935a744c.webp"
+                }
+              ]
+            },
+            {
+              "type": "ICON",
+              "altText": "Logo",
+              "version": "",
+              "variants": [
+                {
+                  "device": "DESKTOP",
+                  "width": 200,
+                  "height": 200,
+                  "url": "https://wuelev8-user-bucket-prod.s3.ap-south-1.amazonaws.com/company/IMG0617v8k5r-55195757-c60b-482a-acb4-239bd8c74912.jpeg"
+                }
+              ]
+            },
+            {
+              "type": "THUMBNAIL",
+              "altText": "Thumbnail",
+              "version": "",
+              "variants": [
+                {
+                  "device": "DESKTOP",
+                  "width": 400,
+                  "height": 300,
+                  "url": "https://wuelev8-user-bucket-prod.s3.ap-south-1.amazonaws.com/branding/OGImage2-8e126ab3-4b7b-4774-9541-d0c5151b2475.webp"
+                }
+              ]
+            },
+            {
+              "type": "OG_IMAGE",
+              "altText": "OG Image",
+              "version": "",
+              "variants": [
+                {
+                  "device": "DESKTOP",
+                  "width": 1200,
+                  "height": 630,
+                  "url": "https://wuelev8-user-bucket-prod.s3.ap-south-1.amazonaws.com/branding/OGImage3-412ff4b3-693f-4f14-a6db-ffc456d170ea.webp"
+                }
+              ]
+            }
+          ]
+        },
+        "organizer": {
+          "drillOrganiserId": "bda3b6b2-3db1-469e-a940-0f7aca99e65b",
+          "name": "Grant Thornton Bharat LLP",
+          "logoUrl": "https://wuelev8-user-bucket-prod.s3.ap-south-1.amazonaws.com/company/IMG0617v8k5r-55195757-c60b-482a-acb4-239bd8c74912.jpeg",
+          "websiteUrl": "https://www.grantthornton.in/"
+        },
+        "displayOrder": 1990,
+        "totalPrizeValue": null,
+        "maxPrizeValue": null,
+        "invitationType": "PUBLIC",
+        "metadata": null,
+        "childDrill": false,
+        "showcaseDrillId": null,
+        "startTs": "2098-11-12T05:30:00Z",
+        "endTs": "2098-12-06T09:07:04Z",
+        "isDateConfirmed": true,
+        "recordCreatedTs": "2098-11-06T09:07:04.873+00:00",
+        "recordUpdatedTs": "2098-11-13T06:28:28.435+00:00",
+        "timezone": "Asia/Kolkata",
+        "venue": null,
+        "skill": null,
+        "drillRegistration": {
+          "registrationId": "9919a0e7-6da7-4da7-8a0e-00844028f3c8",
+          "registrationStartTs": "2098-11-12T05:30:00Z",
+          "registrationEndTs": "2098-12-06T09:07:04Z",
+          "isRegistrationRequired": true,
+          "allowLateRegistration": false,
+          "lateRegistrationEndTs": null,
+          "requireEmailVerification": false,
+          "requireMobileVerification": false,
+          "allowTeamCreationAfterRegistration": null,
+          "externalRegistration": false,
+          "externalRegistrationLink": null,
+          "challengeLevel": null
+        },
+        "drillTeamConfig": null,
+        "pricingTiers": [],
+        "enrollmentStats": {
+          "totalRegistrations": 0,
+          "totalTeams": 0,
+          "totalParticipants": 0
+        }
+      },
+      {
+        "drillId": "bcce9423-c77a-4372-bc63-12b7bd8fdda6",
+        "drillName": "Transport Stack Hackathon 2098",
+        "customUrl": "transport-stack-hackathon-2098",
+        "status": "LIVE",
+        "lifecycleStatus": "LIVE",
+        "category": "HACKATHON",
+        "subCategory": "INNOVATIONHACKATHON",
+        "drillType": "PROBLEM_BASED",
+        "participationType": "TEAM_BASED",
+        "mode": "ONLINE",
+        "purpose": "INNOVATION",
+        "hidden": false,
+        "showcase": false,
+        "paid": false,
+        "mediaAssets": {
+          "assets": [
+            {
+              "type": "BANNER",
+              "altText": "Banner Image",
+              "version": "",
+              "variants": [
+                {
+                  "device": "DESKTOP",
+                  "width": 1920,
+                  "height": 400,
+                  "url": "https://wuelev8-user-bucket-prod.s3.ap-south-1.amazonaws.com/branding/banner1500x5002x-573224f8-7706-435a-b93c-807fe16fe90b.webp"
+                }
+              ]
+            },
+            {
+              "type": "ICON",
+              "altText": "Logo",
+              "version": "",
+              "variants": [
+                {
+                  "device": "DESKTOP",
+                  "width": 200,
+                  "height": 200,
+                  "url": "https://wuelev8-user-bucket-prod.s3.ap-south-1.amazonaws.com/company/DTSOptionLight7f26606fb1e9435882a91817b2aa957d-b72e7497-9f5a-4e45-89d5-c254cc8fc92c.webp"
+                }
+              ]
+            },
+            {
+              "type": "THUMBNAIL",
+              "altText": "Thumbnail",
+              "version": "",
+              "variants": [
+                {
+                  "device": "DESKTOP",
+                  "width": 400,
+                  "height": 300,
+                  "url": "https://wuelev8-user-bucket-prod.s3.ap-south-1.amazonaws.com/branding/thumbnail500x3002x-aabaac1b-d186-4596-9c7f-b56332c9a8c2.webp"
+                }
+              ]
+            },
+            {
+              "type": "OG_IMAGE",
+              "altText": "OG Image",
+              "version": "",
+              "variants": [
+                {
+                  "device": "DESKTOP",
+                  "width": 1200,
+                  "height": 630,
+                  "url": "https://wuelev8-user-bucket-prod.s3.ap-south-1.amazonaws.com/branding/og1200x630-52f295b1-ae74-4a94-95f9-383117081537.webp"
+                }
+              ]
+            }
+          ]
+        },
+        "organizer": {
+          "drillOrganiserId": "3c95c860-0bec-4e73-a764-e15b66a5ed58",
+          "name": "Delhi Transport Stack",
+          "logoUrl": "https://wuelev8-user-bucket-prod.s3.ap-south-1.amazonaws.com/company/DTSOptionLight7f26606fb1e9435882a91817b2aa957d-b72e7497-9f5a-4e45-89d5-c254cc8fc92c.webp",
+          "websiteUrl": "https://delhi.transportstack.in"
+        },
+        "displayOrder": 1960,
+        "totalPrizeValue": "275000",
+        "maxPrizeValue": 275000,
+        "invitationType": "PUBLIC",
+        "metadata": null,
+        "childDrill": false,
+        "showcaseDrillId": null,
+        "startTs": "2098-10-29T04:30:00Z",
+        "endTs": "2098-12-11T08:30:00Z",
+        "isDateConfirmed": true,
+        "recordCreatedTs": "2098-10-29T07:03:53.633+00:00",
+        "recordUpdatedTs": "2098-11-21T14:16:22.659+00:00",
+        "timezone": "Asia/Kolkata",
+        "venue": null,
+        "skill": null,
+        "drillRegistration": {
+          "registrationId": "a684ba95-b7c7-4cbc-aab7-0052b092e170",
+          "registrationStartTs": "2098-10-29T04:30:00Z",
+          "registrationEndTs": "2098-11-23T18:29:00Z",
+          "isRegistrationRequired": true,
+          "allowLateRegistration": false,
+          "lateRegistrationEndTs": null,
+          "requireEmailVerification": false,
+          "requireMobileVerification": false,
+          "allowTeamCreationAfterRegistration": null,
+          "externalRegistration": false,
+          "externalRegistrationLink": null,
+          "challengeLevel": null
+        },
+        "drillTeamConfig": {
+          "teamConfigId": "bcce9423-c77a-4372-bc63-12b7bd8fdda6",
+          "minTeamSize": 2,
+          "maxTeamSize": 3,
+          "requireAllTeamMembersBeforeCreation": false,
+          "allowCrossCollegeTeam": true,
+          "allowCrossOrganizationTeam": true,
+          "enforceGenderRules": false,
+          "genderRules": [],
+          "teamConfigGuidelines": ""
+        },
+        "pricingTiers": [],
+        "enrollmentStats": {
+          "totalRegistrations": 755,
+          "totalTeams": 303,
+          "totalParticipants": 755
+        }
+      },
+      {
+        "drillId": "d7e81a6a-66a4-44f3-a4cb-89015ede20a8",
+        "drillName": "OMNITHON 2098",
+        "customUrl": "omnithon-2098",
+        "status": "LIVE",
+        "lifecycleStatus": "LIVE",
+        "category": "HACKATHON",
+        "subCategory": "INNOVATIONHACKATHON",
+        "drillType": "TRACK_BASED",
+        "participationType": "TEAM_BASED",
+        "mode": "ONLINE",
+        "purpose": "INNOVATION",
+        "hidden": false,
+        "showcase": false,
+        "paid": false,
+        "mediaAssets": {
+          "assets": [
+            {
+              "type": "BANNER",
+              "altText": "Banner Image",
+              "version": "",
+              "variants": [
+                {
+                  "device": "DESKTOP",
+                  "width": 1920,
+                  "height": 400,
+                  "url": "https://wuelev8-user-bucket-prod.s3.ap-south-1.amazonaws.com/branding/1793606848436-89abf5a4-60d5-4703-a8aa-977b4a8071e4.webp"
+                }
+              ]
+            },
+            {
+              "type": "ICON",
+              "altText": "Logo",
+              "version": "",
+              "variants": [
+                {
+                  "device": "DESKTOP",
+                  "width": 200,
+                  "height": 200,
+                  "url": "https://wuelev8-user-bucket-prod.s3.ap-south-1.amazonaws.com/company/images9-6d566485-a87a-4b10-bc14-86a9e6f76db8.webp"
+                }
+              ]
+            },
+            {
+              "type": "THUMBNAIL",
+              "altText": "Thumbnail",
+              "version": "",
+              "variants": [
+                {
+                  "device": "DESKTOP",
+                  "width": 400,
+                  "height": 300,
+                  "url": "https://wuelev8-user-bucket-prod.s3.ap-south-1.amazonaws.com/branding/1793606848436-649876c8-5cbd-4cda-975a-ab18ab73d809.webp"
+                }
+              ]
+            }
+          ]
+        },
+        "organizer": {
+          "drillOrganiserId": "a4c1e857-109e-49fd-8209-9f6cd815aae4",
+          "name": "DBS Global University",
+          "logoUrl": "https://wuelev8-user-bucket-prod.s3.ap-south-1.amazonaws.com/company/images9-6d566485-a87a-4b10-bc14-86a9e6f76db8.webp",
+          "websiteUrl": "https://dgu.ac.in/#"
+        },
+        "displayOrder": 1950,
+        "totalPrizeValue": " ₹40,000",
+        "maxPrizeValue": 40000,
+        "invitationType": "PUBLIC",
+        "metadata": null,
+        "childDrill": false,
+        "showcaseDrillId": null,
+        "startTs": "2098-10-03T05:22:00Z",
+        "endTs": "2098-11-28T06:30:00Z",
+        "isDateConfirmed": true,
+        "recordCreatedTs": "2098-10-05T05:15:11.235+00:00",
+        "recordUpdatedTs": "2098-11-02T10:10:25.213+00:00",
+        "timezone": "Asia/Kolkata",
+        "venue": null,
+        "skill": null,
+        "drillRegistration": {
+          "registrationId": "58d2e6f4-c85e-4711-8f97-f1c93c79ef76",
+          "registrationStartTs": "2098-10-05T05:15:11Z",
+          "registrationEndTs": "2098-11-20T18:29:00Z",
+          "isRegistrationRequired": true,
+          "allowLateRegistration": false,
+          "lateRegistrationEndTs": null,
+          "requireEmailVerification": false,
+          "requireMobileVerification": false,
+          "allowTeamCreationAfterRegistration": null,
+          "externalRegistration": false,
+          "externalRegistrationLink": null,
+          "challengeLevel": null
+        },
+        "drillTeamConfig": {
+          "teamConfigId": "d7e81a6a-66a4-44f3-a4cb-89015ede20a8",
+          "minTeamSize": 4,
+          "maxTeamSize": 6,
+          "requireAllTeamMembersBeforeCreation": true,
+          "allowCrossCollegeTeam": true,
+          "allowCrossOrganizationTeam": true,
+          "enforceGenderRules": false,
+          "genderRules": [],
+          "teamConfigGuidelines": ""
+        },
+        "pricingTiers": [],
+        "enrollmentStats": {
+          "totalRegistrations": 41,
+          "totalTeams": 5,
+          "totalParticipants": 41
+        }
+      }
+    ],
+    "last": true,
+    "totalPages": 1
+  }
+}

@@ -1,0 +1,391 @@
+{
+  "programs": [
+    {
+      "bannerFile": null,
+      "bannerUrl": "https://framerusercontent.com/images/ArTpPHKClDP7i5SNVukbUJRRyI.png?width=1920&height=1080",
+      "contentHeader": "Welcome to the Electrolux Business Growth Hackathon!",
+      "contentHtml": "<p>Electrolux Online Business Growth Hackathon Build software with AI.</p>",
+      "created": "2098-10-05T05:50:23.257Z",
+      "customer": "d3d30028-364d-4bd3-8b9a-75ff7979d86b",
+      "dateTitle": "November 24  Hack day | November 26  Grand Finale",
+      "description": "Electrolux Online Business Growth Hackathon: product-centred videos for marketing, sales, use and maintenance.",
+      "ends": "2098-11-30",
+      "eventColor": "rgb(5, 30, 80)",
+      "eventTextColor": null,
+      "featured": false,
+      "finaleVenueId": null,
+      "framerId": "CZvzrNggB",
+      "galleryImageIds": [
+        "2e9784f7-5867-4405-a3a4-e7f6d05c27a3",
+        "2ce5204c-8495-40c6-b25f-eeab20a80cb3",
+        "7a74c707-732a-4779-b232-9bb9aab96074",
+        "6edc112b-58d3-4097-88aa-99a08bb519e2",
+        "09182822-c2b0-45d4-9ac3-902921a82d4f",
+        "32a9f059-fcdd-4a95-9d90-e6edfb7b592d"
+      ],
+      "header": "Online Business Growth Hackathon",
+      "headerDate": "Hack Day: 24 November 08:30 – 17:00",
+      "headerEventInfoHtml": null,
+      "headerLogoId": "f74d9c5c-dd9a-4bd7-894d-9a7efa17df07",
+      "headerSubtitle": "Produce product-centered videos for marketing, sales, use and maintenance",
+      "headerVideoId": "a0a1830e-06a6-4504-8920-772a239179d5",
+      "hostCompanyIds": [
+        "d3d30028-364d-4bd3-8b9a-75ff7979d86b",
+        "8e6cb408-a9f4-41fc-8de8-fc2db4ca7aba"
+      ],
+      "hostsTitle": "Hosts",
+      "invitationDays": "30",
+      "invitationMail": {
+        "kind": "direct"
+      },
+      "keyAddresses": [
+        {
+          "label": "Product Film Production Service",
+          "note": "Sign in with your 2Hero account; turn product photos and a description into a narrated film",
+          "url": "https://elx-films.2hero.dev"
+        }
+      ],
+      "keyLimitUsd": "50",
+      "locationCity": null,
+      "locationDescription": "Welcome!",
+      "locationMapAddress": "S:t Göransgatan 143, 112 17 Stockholm",
+      "locationStreetAddress": "S:t Göransgatan 143",
+      "locationTitle": "Grand Finale: 26 November  13:00 – 15:00",
+      "name": "Electrolux Online Business Growth Hackathon",
+      "page": null,
+      "program": "13a12808-8f48-4bd2-96e7-c1c72e578062",
+      "programKind": {
+        "kind": "hackathon"
+      },
+      "showJury": false,
+      "showLocationSection": true,
+      "showOrganizers": true,
+      "showSponsors": false,
+      "showTechPartners": false,
+      "skills": [],
+      "slug": "electrolux-business-growth-hackathon",
+      "sponsorCompanyIds": [],
+      "starts": "2098-10-28",
+      "state": {
+        "kind": "running"
+      },
+      "techPartnerIds": [],
+      "timeZone": "Europe/Stockholm",
+      "updated": "2098-11-21T17:15:02.089Z",
+      "venueId": "6c74cec9-bdbb-43e8-92d7-e77e30e991de"
+    },
+    {
+      "bannerFile": null,
+      "bannerUrl": "https://framerusercontent.com/images/zY7WRCSqYcpYkOR1qWcK1zBT6Rw.png?width=1920&height=1080",
+      "contentHeader": "Welcome to the Databricks & Diggibyte AI Business Value Hackathon!",
+      "contentHtml": "<p>Diggibyte / Databricks Hackathon 2098 Build software with AI.</p>",
+      "created": "2098-10-06T16:45:15.661Z",
+      "customer": "d7eda380-2c99-40bf-b0b0-bdf67cd9929b",
+      "dateTitle": "Dec 1  Hack Day  08:30 - 20:30 | Dec 2  Grand Finale",
+      "description": "Dry run 7 Oct; hack day 1 Dec, final 2 Dec",
+      "ends": null,
+      "eventColor": "rgb(245, 138, 36)",
+      "eventTextColor": null,
+      "featured": true,
+      "finaleVenueId": "fd635a34-13fd-45ae-b91d-3d3f7439b234",
+      "framerId": "QOPyZEYhR",
+      "galleryImageIds": [
+        "2e9784f7-5867-4405-a3a4-e7f6d05c27a3",
+        "2ce5204c-8495-40c6-b25f-eeab20a80cb3",
+        "7a74c707-732a-4779-b232-9bb9aab96074",
+        "32a9f059-fcdd-4a95-9d90-e6edfb7b592d",
+        "6edc112b-58d3-4097-88aa-99a08bb519e2",
+        "09182822-c2b0-45d4-9ac3-902921a82d4f"
+      ],
+      "header": "AI Business Value Hackathon",
+      "headerDate": "Hack Day: 1 December  08:30 – 17:00",
+      "headerEventInfoHtml": null,
+      "headerLogoId": "41323aaa-e89e-40dd-ad12-3a48978037b8",
+      "headerSubtitle": "The Challenge: Team up with leading Nordic companies to build AI-powered solutions that create real business value",
+      "headerVideoId": "67d2286a-9f13-482b-9ddc-5aedc2504449",
+      "hostCompanyIds": [
+        "d7eda380-2c99-40bf-b0b0-bdf67cd9929b",
+        "9cf41b80-3aaa-4019-b337-fa2431e363dc",
+        "8e6cb408-a9f4-41fc-8de8-fc2db4ca7aba"
+      ],
+      "hostsTitle": "Hosts",
+      "invitationDays": "30",
+      "invitationMail": {
+        "kind": "direct"
+      },
+      "keyAddresses": [],
+      "keyLimitUsd": null,
+      "locationCity": "Stockholm",
+      "locationDescription": "We will greet you outside Chas Academy and show you the way to the hackathon venue! Welcome!",
+      "locationMapAddress": "Arenavägen 61, Globen, Stockholm, Floor 9",
+      "locationStreetAddress": "Arenavägen 61, Globen, Stockholm",
+      "locationTitle": "Grand Finale: 2 December  (Time is to be announced)",
+      "name": "Diggibyte / Databricks Hackathon 2098",
+      "page": null,
+      "program": "509b85bf-720b-41ae-9b62-0644eead11a0",
+      "programKind": {
+        "kind": "hackathon"
+      },
+      "showJury": false,
+      "showLocationSection": true,
+      "showOrganizers": true,
+      "showSponsors": false,
+      "showTechPartners": false,
+      "skills": [],
+      "slug": "databricks-ai-business-value-hackathon",
+      "sponsorCompanyIds": [],
+      "starts": "2098-12-01T08:30:00Z",
+      "state": {
+        "kind": "running"
+      },
+      "techPartnerIds": [],
+      "timeZone": "Europe/Stockholm",
+      "updated": "2098-11-09T20:50:28.315Z",
+      "venueId": "efd44fa5-7035-40d2-9e17-edf06e698678"
+    },
+    {
+      "bannerFile": null,
+      "bannerUrl": null,
+      "contentHeader": "Welcome to Epiroc AI Hackathon 2099",
+      "contentHtml": "<p>Epiroc AI Hackathon 2099 Build software with AI.</p>",
+      "created": "2098-11-18T12:46:03.898Z",
+      "customer": "883363aa-a67a-451e-82fc-64f1b0d59286",
+      "dateTitle": "February 15–16  Hack Day | February 18  Grand Finale & Award Ceremony",
+      "description": "Three tracks: Technical Translation AI, Beyond Translation, End-to-End Package Transportation Optimization. Inspiration seminars 9 Dec and 12 Jan, kick-off 2 Feb, learning sessions 3–12 Feb, hack day 15 Feb (NASA + EMEA) or 16 Feb (APAC + EMEA), grand finale 18 Feb.",
+      "ends": "2099-02-18",
+      "eventColor": "rgb(255, 199, 44)",
+      "eventTextColor": "rgb(66, 85, 99)",
+      "featured": false,
+      "finaleVenueId": null,
+      "framerId": null,
+      "galleryImageIds": [
+        "2e9784f7-5867-4405-a3a4-e7f6d05c27a3",
+        "2ce5204c-8495-40c6-b25f-eeab20a80cb3",
+        "7a74c707-732a-4779-b232-9bb9aab96074",
+        "32a9f059-fcdd-4a95-9d90-e6edfb7b592d",
+        "6edc112b-58d3-4097-88aa-99a08bb519e2",
+        "09182822-c2b0-45d4-9ac3-902921a82d4f"
+      ],
+      "header": "Epiroc AI Hackathon 2099",
+      "headerDate": "Hack Day: February 15 (Americas + EMEA) · February 16 (APAC + EMEA)",
+      "headerEventInfoHtml": null,
+      "headerLogoId": "c5399fe2-478c-4cd5-b343-bc0be36f79d6",
+      "headerSubtitle": "The Challenge: Unlock the power of AI",
+      "headerVideoId": null,
+      "hostCompanyIds": [
+        "883363aa-a67a-451e-82fc-64f1b0d59286",
+        "8e6cb408-a9f4-41fc-8de8-fc2db4ca7aba"
+      ],
+      "hostsTitle": "Hosts",
+      "invitationDays": "30",
+      "invitationMail": {
+        "kind": "direct"
+      },
+      "keyAddresses": [],
+      "keyLimitUsd": null,
+      "locationCity": null,
+      "locationDescription": null,
+      "locationMapAddress": null,
+      "locationStreetAddress": null,
+      "locationTitle": null,
+      "name": "Epiroc AI Hackathon 2099",
+      "page": {
+        "actionButtonText": "APPLY",
+        "actionUrl": null,
+        "googleLaunch": false,
+        "published": "2098-11-19T20:24:22.209Z"
+      },
+      "program": "9657ac5a-ff21-4dc0-8fa2-e61663d5dbb0",
+      "programKind": {
+        "kind": "hackathon"
+      },
+      "showJury": false,
+      "showLocationSection": false,
+      "showOrganizers": true,
+      "showSponsors": false,
+      "showTechPartners": false,
+      "skills": [
+        {
+          "group": null,
+          "label": "Backend Development",
+          "slug": "backend"
+        },
+        {
+          "group": null,
+          "label": "Frontend Development",
+          "slug": "frontend"
+        },
+        {
+          "group": null,
+          "label": "AI-Assisted Coding",
+          "slug": "ai-coding"
+        },
+        {
+          "group": null,
+          "label": "Machine Learning",
+          "slug": "ml"
+        },
+        {
+          "group": null,
+          "label": "Data Engineering",
+          "slug": "data-engineering"
+        },
+        {
+          "group": null,
+          "label": "Data Analytics",
+          "slug": "data-analytics"
+        },
+        {
+          "group": null,
+          "label": "UX/UI Design",
+          "slug": "ux-ui"
+        },
+        {
+          "group": null,
+          "label": "Technical Documentation",
+          "slug": "tech-docs"
+        },
+        {
+          "group": null,
+          "label": "Technical Translation",
+          "slug": "tech-translation"
+        },
+        {
+          "group": null,
+          "label": "Logistics Planning",
+          "slug": "logistics"
+        },
+        {
+          "group": null,
+          "label": "Business Operations",
+          "slug": "business-ops"
+        },
+        {
+          "group": null,
+          "label": "Product Management",
+          "slug": "product"
+        },
+        {
+          "group": null,
+          "label": "Storytelling & Pitching",
+          "slug": "pitching"
+        },
+        {
+          "group": null,
+          "label": "Other",
+          "slug": "other"
+        }
+      ],
+      "slug": "epiroc-ai-hackathon-2099",
+      "sponsorCompanyIds": [],
+      "starts": "2099-02-15T13:00:00Z",
+      "state": {
+        "kind": "draft"
+      },
+      "techPartnerIds": [],
+      "timeZone": "Europe/Stockholm",
+      "updated": "2098-11-19T20:24:22.209Z",
+      "venueId": null
+    }
+  ],
+  "companies": [
+    {
+      "created": "2098-04-18T12:39:31.755000Z",
+      "framerId": "j9tpos4Sd",
+      "logoDarkFile": null,
+      "logoDarkUrl": null,
+      "logoLightFile": null,
+      "logoLightUrl": "/framer-media/Y4SXYLzNFbBCSlCI7L2Eug9qM.svg?width=450&height=150",
+      "name": "2Hero",
+      "organization": "8e6cb408-a9f4-41fc-8de8-fc2db4ca7aba",
+      "slug": "2hero",
+      "tagline": "Game-Changing Hackathons. Learn how to build better software faster.",
+      "updated": "2098-01-13T17:40:11.061000Z",
+      "website": "https://2hero.dev/"
+    },
+    {
+      "created": "2098-10-20T08:02:58.138000Z",
+      "framerId": "i4yStrS4D",
+      "logoDarkFile": null,
+      "logoDarkUrl": "/framer-media/wO2OujYIobvnbKxs9GlwBBHdadg.webp?width=622&height=173",
+      "logoLightFile": null,
+      "logoLightUrl": "/framer-media/eBZYWvWg5Dwrz1BOxUJZSvuLLTo.png?width=1200&height=630",
+      "name": "Databricks",
+      "organization": "9cf41b80-3aaa-4019-b337-fa2431e363dc",
+      "slug": "databricks",
+      "tagline": "Better Data. Smarter AI.",
+      "updated": "2098-10-20T08:05:37.984000Z",
+      "website": "https://www.databricks.com/overview"
+    },
+    {
+      "created": "2098-10-20T08:01:31.060000Z",
+      "framerId": "WeoMjj8Ij",
+      "logoDarkFile": null,
+      "logoDarkUrl": "/framer-media/SWtTHk80ako89EgDUHqvrcoqk.png?width=300&height=100",
+      "logoLightFile": null,
+      "logoLightUrl": "/framer-media/UzCsAgKHnUf7q5j9bl0BkD6y1w.png?width=4500&height=2500",
+      "name": "Diggibyte",
+      "organization": "d7eda380-2c99-40bf-b0b0-bdf67cd9929b",
+      "slug": "diggibyte",
+      "tagline": "Accelerate Enterprise AI Innovation Across the Nordics With Databricks",
+      "updated": "2098-10-20T08:02:43.421000Z",
+      "website": "https://diggibyte.com/nr/"
+    },
+    {
+      "created": "2098-09-17T07:45:35.233000Z",
+      "framerId": "jWzUsrOy6",
+      "logoDarkFile": null,
+      "logoDarkUrl": "/framer-media/tcCT1MMech9T3Oa05qUyoIA.png?width=847&height=194",
+      "logoLightFile": null,
+      "logoLightUrl": "/framer-media/sdxEeNEZY2zzcoMN22rUoElLPo.png?width=847&height=194",
+      "name": "Electrolux",
+      "organization": "d3d30028-364d-4bd3-8b9a-75ff7979d86b",
+      "slug": "electrolux",
+      "tagline": "Shape living for the better",
+      "updated": "2098-09-17T07:46:44.815000Z",
+      "website": "https://www.electrolux.se/"
+    },
+    {
+      "created": "2098-10-19T09:34:07.371000Z",
+      "framerId": "RpwzORegA",
+      "logoDarkFile": null,
+      "logoDarkUrl": "/framer-media/q8275hXDY4DuUPOBVUCbUgQ1U.png?width=1603&height=434",
+      "logoLightFile": null,
+      "logoLightUrl": "/framer-media/q8275hXDY4DuUPOBVUCbUgQ1U.png?width=1603&height=434",
+      "name": "Epiroc",
+      "organization": "883363aa-a67a-451e-82fc-64f1b0d59286",
+      "slug": "epiroc",
+      "tagline": "United in performance. Inspired by innovation",
+      "updated": "2098-10-19T09:36:15.633000Z",
+      "website": "https://www.epiroc.com/sv-se"
+    }
+  ],
+  "venues": [
+    {
+      "city": null,
+      "country": null,
+      "created": "2098-10-01T10:35:22.886000Z",
+      "framerId": "qgj65zzqa",
+      "location": "<p>We will greet you outside Chas Academy and show you the way to the venue! Welcome! </p>",
+      "name": "Chas Academy",
+      "postalCode": null,
+      "slug": "chas-academy",
+      "streetAddress": "Arenavägen 61 Globen, Stockholm, Floor 9",
+      "updated": "2098-02-24T13:28:51.723000Z",
+      "venue": "efd44fa5-7035-40d2-9e17-edf06e698678"
+    },
+    {
+      "city": null,
+      "country": null,
+      "created": "2098-09-17T07:28:50.295000Z",
+      "framerId": "SqMX58iJ0",
+      "location": "<p>Welcome!</p>",
+      "name": "Electrolux HQ",
+      "postalCode": null,
+      "slug": "electrolux-hq",
+      "streetAddress": "S:t Göransgatan 143",
+      "updated": "2098-09-17T07:29:09.936000Z",
+      "venue": "6c74cec9-bdbb-43e8-92d7-e77e30e991de"
+    }
+  ]
+}

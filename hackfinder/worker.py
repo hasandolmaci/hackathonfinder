@@ -37,9 +37,10 @@ log = logging.getLogger(__name__)
 PASSES = {
     "quick": ["devpost", "devfolio", "unstop", "hackclub", "ctftime", "mlh", "taikai", "hackerearth", "luma",
               "allhackathons", "zindi", "devnovate", "hack2skill", "hackquest", "commudle", "hackjunction", "netherlandshackathons",
-              "aanmelder", "brainport", "eurodefense", "eventornado", "hackathonparty", "hackatum", "starthack", "startupamsterdam", "techeurope", "tudelft", "vu", "yesdelft", "zukunftgesundheit"],
+              "aanmelder", "brainport", "eurodefense", "eventornado", "hackathonparty", "hackatum", "starthack", "startupamsterdam", "techeurope", "tudelft", "vu", "yesdelft", "zukunftgesundheit",
+              "builderbase", "circuitfeed", "colosseum", "govtechnl", "hackculture", "hackindia", "hackuk", "loops", "makefun", "superteam", "twohero", "whereuelevate"],
     "browser": ["ethglobal", "kaggle", "itchio", "hackathoncom", "lablab",
-                "dorahacks", "encodeclub", "wemakedevs"],
+                "dorahacks", "encodeclub", "wemakedevs", "aitinkerers"],
     "full": None,  # every collector (minus LOCAL_ONLY when running in GitHub Actions)
     "local": None,  # LOCAL_ONLY, run from a home computer (scripts/crawl_local.ps1)
 }

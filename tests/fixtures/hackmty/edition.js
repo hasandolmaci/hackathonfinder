@@ -1,0 +1,3 @@
+,b.jsx("span",{className:ue.locCardVal,children:t("location.card.whenValue","September 11–13, 2099")})]}),b.jsxs("div",{className:ue.locCardRow,children:[b.jsx("span",{className:ue.locCardLbl,children:t("location.card.whereLabel","Where")}),b.jsx("span",{className:ue.lo
+his September.")}),b.jsxs("a",{className:ue.wlCta,href:"https://experience.hackmty.com",target:"_blank",rel:"noopener noreferrer",children:[b.jsxs("svg",{className:ue.wlFormIcon,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2",strokeLinecap:"round
+",{className:ue.locCardCoord,children:t("location.card.coord","25.6515° N / 100.2899° W")})]}),b.jsxs("div",{className:ue.locCardName,children:["Arena ",b.jsx("i",{childr

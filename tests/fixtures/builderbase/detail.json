@@ -1,0 +1,95 @@
+{
+  "data": {
+    "super_event": {
+      "id": "8670f20c-1245-4ae3-a813-babcfe599759",
+      "org_id": "c25fd2e8-3629-45d8-8d41-ab295a7940ef",
+      "name": "AI Summit Albania HACKATHON",
+      "slug": "ai-summit-albania-hackathon",
+      "description": "A 48 hour challenge where developers, designers and founders build AI-powered solutions with leading technology partners.\n\n",
+      "start_at": "2099-03-06T09:00:00+00:00",
+      "end_at": "2099-03-07T17:00:00+00:00",
+      "tz": "Europe/London",
+      "config_json": {
+        "registration_open": true,
+        "team_application_mode": "individual",
+        "auto_approve_registrations": false
+      },
+      "created_at": "2098-09-28T19:55:16.603447+00:00",
+      "updated_at": "2098-11-03T22:38:38.11382+00:00",
+      "deleted_at": null,
+      "cover_image_file_id": "b7e34516-23d3-4841-9b0b-5c87d13c6348",
+      "org_slug": "ai-summit-albania",
+      "payment_status": "paid",
+      "max_participants": 100,
+      "visibility": "public",
+      "status": "final",
+      "tc_file_id": null,
+      "format": "onsite",
+      "banner_image_file_id": "f2e43557-4051-412b-a5ed-8e044c44e736",
+      "published_save_id": "54e38634-556f-45e1-9a66-a56bf0e948cf",
+      "seo_title": "AI Summit Albania HACKATHON — BuilderBase",
+      "seo_description": "A 48 hour challenge where developers, designers and founders build AI-powered solutions with leading technology partners.",
+      "social_image_url": null,
+      "social_image_alt": null,
+      "noindex": false,
+      "venue": {
+        "addressLocality": "Tiranë",
+        "addressCountry": "AL",
+        "addressRegion": "Qarku i Tiranës"
+      },
+      "pricing_model": "tiered",
+      "tier": "starter",
+      "venue_public": false,
+      "event_type": "hackathon",
+      "track_layout": "single",
+      "allow_pending_track_selection": true,
+      "allow_post_acceptance_track_selection": false,
+      "submission_deadline": null,
+      "organization": {
+        "id": "c25fd2e8-3629-45d8-8d41-ab295a7940ef",
+        "name": "AI Summit Albania",
+        "slug": "ai-summit-albania",
+        "website": null,
+        "logo_url": "https://sbnxiexidrjwubdfjepb.supabase.co/storage/v1/object/public/organization-logos/c25fd2e8-3629-45d8-8d41-ab295a7940ef/logo-1793745684949.png",
+        "github_url": null,
+        "twitter_url": null,
+        "youtube_url": null,
+        "facebook_url": null,
+        "linkedin_url": null,
+        "instagram_url": null
+      },
+      "page_data": {
+        "html": "<main><h1>AI Summit</h1><p>A 48 hour challenge</p></main>"
+      },
+      "cover_image_url": "https://sbnxiexidrjwubdfjepb.supabase.co/storage/v1/object/public/uploads/super_event/8670f20c-1245-4ae3-a813-babcfe599759/b7e34516-23d3-4841-9b0b-5c87d13c6348.png",
+      "banner_image_url": "https://sbnxiexidrjwubdfjepb.supabase.co/storage/v1/object/public/uploads/super_event/8670f20c-1245-4ae3-a813-babcfe599759/f2e43557-4051-412b-a5ed-8e044c44e736.png",
+      "tc_file_url": null,
+      "registration_open": true,
+      "capabilities": {
+        "version": 1,
+        "multiTrack": false,
+        "format": "onsite",
+        "registration": {
+          "open": true,
+          "autoApprove": false,
+          "allowPendingTrackSelection": true,
+          "allowPostAcceptanceTrackSelection": false
+        },
+        "teams": {
+          "applicationMode": "individual",
+          "size": {
+            "min": null,
+            "max": null
+          }
+        },
+        "judging": {
+          "scoringInputMode": "slider"
+        },
+        "schedule": {
+          "mode": "per_track",
+          "chosen": false
+        }
+      }
+    }
+  }
+}

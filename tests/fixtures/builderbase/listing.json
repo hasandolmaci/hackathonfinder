@@ -1,0 +1,53 @@
+{
+  "data": {
+    "super_events": [
+      {
+        "id": "ca34f620-47a4-4ac7-b9a2-4cfae1fd57e7",
+        "name": "Node Engine Hackathon",
+        "slug": "node-engine-hackathon",
+        "description": "Node Engine is a hackathon focused on growing a network of developers, designers, and product thinkers shaping the future of tech from the African continent and beyond.\r\n\r\nWhether you're building blockchain tools for mass adoption, remittance solutions, or AI-powered platforms, the Node Engine Hackathon is where bright minds come to build in Africa. And this year, when you apply to the Hackathon, you’ll automatically be considered for the Node Engine Travel Grant, designed to bring the most promising talent to Cape Town this January.",
+        "start_at": "2098-01-15T12:30:00+00:00",
+        "end_at": "2098-01-23T21:59:00+00:00",
+        "tz": "UTC",
+        "cover_image_url": "https://sbnxiexidrjwubdfjepb.supabase.co/storage/v1/object/public/uploads/super-events/covers/node-engine-hackathon-1768419246214-channels4_banner.webp",
+        "format": "onsite",
+        "event_type": "hackathon",
+        "location": null,
+        "registration_open": false,
+        "registration_deadline": null,
+        "track_count": 6,
+        "participant_count": 111,
+        "organization": {
+          "id": "e5ea2b0a-c7af-4e88-924f-8c616e3a69ba",
+          "name": "Node Engine - W3Node",
+          "slug": "node-engine-w3node",
+          "logo_url": "https://sbnxiexidrjwubdfjepb.supabase.co/storage/v1/object/public/organization-logos/e5ea2b0a-c7af-4e88-924f-8c616e3a69ba/logo-1768418709579.svg"
+        }
+      },
+      {
+        "id": "ec1c33da-3a49-4b5d-a03d-05f882f43c34",
+        "name": "​Hack for Earth x unDavos 2098",
+        "slug": "hack-for-earth-x-undavos-2098",
+        "description": "​Hack for Earth joins forces with unDavos to create a first-of-its-kind global initiative that connects citizen action with global leadership.",
+        "start_at": "2098-01-16T17:00:00+00:00",
+        "end_at": "2098-01-18T13:00:00+00:00",
+        "tz": "UTC",
+        "cover_image_url": "https://sbnxiexidrjwubdfjepb.supabase.co/storage/v1/object/public/uploads/super-events/covers/H4E_banner.jpg",
+        "format": "onsite",
+        "event_type": "hackathon",
+        "location": null,
+        "registration_open": true,
+        "registration_deadline": null,
+        "track_count": 0,
+        "participant_count": 58,
+        "organization": {
+          "id": "f640aaa7-412a-4319-bbd8-a369beeea150",
+          "name": "Hack For Earth",
+          "slug": "hack-for-earth",
+          "logo_url": "https://sbnxiexidrjwubdfjepb.supabase.co/storage/v1/object/public/organization-logos/f640aaa7-412a-4319-bbd8-a369beeea150/logo-1768466727027.png"
+        }
+      }
+    ],
+    "next_cursor": "second"
+  }
+}
