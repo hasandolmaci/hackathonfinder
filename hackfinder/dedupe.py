@@ -56,9 +56,21 @@ _PLACE_NOISE = {
 }
 
 
+# Native and English city names count as the same place word ("Garching bei München" ~ "Munich").
+_PLACE_ALIAS = {
+    "munchen": "munich", "muenchen": "munich", "koln": "cologne", "koeln": "cologne", "nurnberg": "nuremberg",
+    "nuernberg": "nuremberg", "wien": "vienna", "praha": "prague", "warszawa": "warsaw", "krakow": "cracow",
+    "milano": "milan", "roma": "rome", "torino": "turin", "napoli": "naples", "firenze": "florence",
+    "lisboa": "lisbon", "bruxelles": "brussels", "brussel": "brussels", "antwerpen": "antwerp",
+    "gent": "ghent", "haag": "hague", "genf": "geneva", "geneve": "geneva", "zurich": "zurich",
+    "kobenhavn": "copenhagen", "goteborg": "gothenburg", "athina": "athens", "bei": "the",
+}
+
+
 def _place_tokens(location: str) -> set[str]:
     text = unicodedata.normalize("NFKD", location).encode("ascii", "ignore").decode().casefold()
-    return {t for t in re.findall(r"[a-z]{3,}", text) if t not in _PLACE_NOISE}
+    tokens = (_PLACE_ALIAS.get(t, t) for t in re.findall(r"[a-z]{3,}", text))
+    return {t for t in tokens if t not in _PLACE_NOISE}
 
 
 def _same_place(left: str, right: str) -> bool:
