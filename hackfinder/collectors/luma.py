@@ -341,12 +341,27 @@ def _over_budget(started, what):
     return False
 
 
+def _refused(exc, what, strikes):
+    """A 403/429 on one calendar/host/event: skip it and cool down; after 3 in a row stop the loop
+    (returns None) but keep what was found, instead of failing the whole scope."""
+    global _blocked
+    if not str(exc).startswith("blocked"):
+        raise exc
+    _blocked = 0
+    if strikes + 1 >= 3:
+        log.warning("luma %s: refused 3 times in a row, keeping what was found", what)
+        return None
+    log.info("luma %s: refused (%s), cooling down", what, exc)
+    time.sleep(float(os.environ.get("HF_LUMA_COOLDOWN", "20")))
+    return strikes + 1
+
+
 def _collect_calendars(order=None):
     """No time/event cap; exhaust each calendar, up to the shared 100-page safety limit."""
     order = calendar_order(seed_calendars(), _calendars) if order is None else order
     events = {}
     with client(timeout=10) as c:
-        started = time.monotonic()
+        started, strikes = time.monotonic(), 0
         for api_id, name in order:
             if _over_budget(started, 'calendars'):
                 break
@@ -354,6 +369,10 @@ def _collect_calendars(order=None):
                 for rows in _pages(c, {"_path": "/calendar/get-items", "calendar_api_id": api_id,
                                        "period": "future", "pagination_limit": PAGE}):
                     events.update(relevant_events(rows))
+                strikes = 0
+            except RuntimeError as exc:
+                if (strikes := _refused(exc, 'calendars', strikes)) is None:
+                    break
             except httpx.HTTPStatusError as exc:
                 if exc.response.status_code not in (400, 404, 410):
                     raise
@@ -370,7 +389,7 @@ def _collect_hosts():
     events, known = {}, set(seed_calendars()) | set(_calendars)
     hosts = list(_hosts)
     with client(timeout=10) as c:
-        started = time.monotonic()
+        started, strikes = time.monotonic(), 0
         for api_id in hosts:
             if _over_budget(started, 'hosts'):
                 break
@@ -378,6 +397,10 @@ def _collect_hosts():
                 for rows in _pages(c, {"_path": "/user/profile/events-hosting", "user_api_id": api_id,
                                        "period": "future", "pagination_limit": PAGE}):
                     events.update(relevant_events(rows))
+                strikes = 0
+            except RuntimeError as exc:
+                if (strikes := _refused(exc, 'hosts', strikes)) is None:
+                    break
             except httpx.HTTPStatusError as exc:
                 if exc.response.status_code not in (400, 404, 410):
                     raise
@@ -393,7 +416,7 @@ def _collect_details():
     """One detail per unique event, after expansion; quick discovery makes no detail requests."""
     events = {}
     with client(timeout=10) as c:
-        started = time.monotonic()
+        started, strikes = time.monotonic(), 0
         for api_id, entry in list(_entries.items()):
             if _over_budget(started, 'details'):
                 break
@@ -401,6 +424,11 @@ def _collect_details():
                 continue  # External calendar entries already carry their original registration URL.
             try:
                 detail = _get(c, {"_path": "/event/get", "event_api_id": api_id})
+                strikes = 0
+            except RuntimeError as exc:
+                if (strikes := _refused(exc, 'details', strikes)) is None:
+                    break
+                continue
             except httpx.HTTPStatusError as exc:
                 if exc.response.status_code not in (404, 410):
                     raise

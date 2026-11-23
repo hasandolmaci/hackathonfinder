@@ -192,6 +192,19 @@ def test_scopes_and_state_reset():
         assert l.RANKED_SEARCH is True
 
 
+def test_calendar_refusals_keep_found_events():
+    blocked = RuntimeError("blocked: HTTP 403 from https://api.lu.ma/calendar/get-items")
+    with isolated(), patch.dict(os.environ, {"HF_LUMA_LEARN": "0", "HF_LUMA_COOLDOWN": "0"}),          patch.object(l, "_pages", side_effect=[iter([[entry()]]), blocked, iter([[]]), blocked, blocked, blocked]):
+        cals = [(f"cal-{i}", "x") for i in range(7)]
+        assert len(l._collect_calendars(cals)) == 1  # one refusal is skipped; three in a row stop, keeping the event
+    with isolated(), patch.object(l, "_pages", side_effect=RuntimeError("Luma listing response changed")):
+        try:
+            l._collect_calendars([("cal-x", "x")])
+            assert False
+        except RuntimeError as exc:
+            assert "changed" in str(exc)
+
+
 if __name__ == "__main__":
     tests = [v for k, v in list(globals().items()) if k.startswith("test_")]
     for test in tests:
