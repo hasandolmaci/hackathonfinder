@@ -85,7 +85,7 @@ def classify(event: Event, source_meta: dict) -> Event:
             ("game_jam", GAME_JAM + r"|\bjam\b"),
             ("ctf", r"\b(ctf|capture[ -]the[ -]flag)\b"),
             ("ideathon", r"\b(ideathon|idea[ -]thon)\b"),
-            ("hackathon", r"\b(hackathons?|hack[ -]?(day|night)|build[ -]?(athon|day|night)|datathon|makeathon|hackaton|hakaton|hackat[oó]n|hakat[oó]n)\b|ハッカソン|해커톤|黑客松|駭客松|хакатон|هاكاثون"),
+            ("hackathon", r"\b(hackathons?|hack[ -]?(day|night)|hack(?: the| for|4) ?[a-z]\w+|build[ -]?(athon|day|night)|datathon|makeathon|hackaton|hakaton|hackat[oó]n|hakat[oó]n)\b|ハッカソン|해커톤|黑客松|駭客松|хакатон|هاكاثون"),
             ("coding_competition", r"\b(coding competition|programming contest|algorithmic contest|kaggle competition)\b"),
         ]
         for candidate, pattern in rules:

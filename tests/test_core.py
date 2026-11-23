@@ -4,7 +4,7 @@ Every test uses a temporary SQLite database; DATABASE_URL is ignored.
 """
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 import importlib
 import os
 from pathlib import Path
@@ -165,7 +165,7 @@ def test_lifecycle():
         with db.connect() as conn:
             status = {r["key"]: r["status"] for r in conn.fetchall("SELECT key, status FROM events")}
             runs = conn.fetchall("SELECT status, exhaustive FROM crawl_runs ORDER BY id")
-        assert status == {"https://luma.com/keep": "active", "https://luma.com/drop": "missing"}
+        assert status == {"https://luma.com/keep": "active"}  # rows no longer listed are deleted, not hidden
         assert [(r["status"], bool(r["exhaustive"])) for r in runs] == [
             ("ok", True), ("ok", True), ("error", False), ("ok", False), ("ok", True)]
         # A reappearing listing is active again with its original first_seen.
@@ -277,7 +277,9 @@ def test_app():
             assert stats["total"] == 5 and stats["start_48h"] == 2 and stats["open_now"] == 2, stats
             assert stats["new_this_week"] == 5 and stats["sources"] == 1 and stats["updated_at"]
             sources = client.get("/api/sources").json()
-            assert sources[0]["status"] == "ok" and sources[0]["count"] == len(rows), sources
+            today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+            kept = [r for r in rows if not ((r.end or r.start) and (r.end or r.start) < today)]  # past rows are deleted
+            assert sources[0]["status"] == "ok" and sources[0]["count"] == len(kept) < len(rows), sources
             assert set(sources[0]) >= {"id", "name", "method", "status", "count", "last_success_at", "last_run_at", "error"}
             assert client.get("/api/stream").status_code == 404
             # Responses are cached in-process for 30 s.

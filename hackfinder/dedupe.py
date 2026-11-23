@@ -81,20 +81,75 @@ def _same_place(left: str, right: str) -> bool:
     return not a or not b or bool(a & b)
 
 
+_YEAR = re.compile(r"^(?:19|20)\d\d$")
+# Words too generic to identify an event on their own ("AI Hackathon" in two cities is two events).
+_GENERIC = {"hack", "hacks", "hackathon", "hackathons", "build", "builders", "buildathon", "day", "night", "ai",
+            "the", "and", "for", "with", "x", "a", "of", "in", "on", "challenge", "jam", "game", "ctf", "edition"}
+
+
+def _numbers(tokens: set[str]) -> set[str]:
+    """Edition numbers; years are dropped ("Hoya Hacks" ~ "Hoya Hacks 2027")."""
+    return {t for t in tokens if t.isdigit() and not _YEAR.match(t)}
+
+
+def _days_apart(left: Event, right: Event) -> int:
+    """Gap in days between the two [start, end] ranges (0 when they overlap)."""
+    a0, b0 = left.start.date(), right.start.date()
+    a1, b1 = (left.end or left.start).date(), (right.end or right.start).date()
+    return max(0, (max(a0, b0) - min(a1, b1)).days)
+
+
+def _point(event: Event):
+    try:
+        return float(event.signals["lat"]), float(event.signals["lon"])
+    except (KeyError, TypeError, ValueError):
+        from .geo import geocode  # offline GeoNames lookup, no network
+        lat, lon = geocode(event.location, event.country)
+        return (lat, lon) if lat is not None else None
+
+
+def _km(left: Event, right: Event) -> float | None:
+    """Distance between the two venues when both resolve to a point, else None."""
+    import math
+    p, q = _point(left), _point(right)
+    if not p or not q:
+        return None
+    (la1, lo1), (la2, lo2) = p, q
+    h = math.sin(math.radians(la2 - la1) / 2) ** 2 + math.cos(math.radians(la1)) * math.cos(math.radians(la2)) *         math.sin(math.radians(lo2 - lo1) / 2) ** 2
+    return 12742 * math.asin(math.sqrt(h))
+
+
 def _same(left: Event, right: Event) -> bool:
     if normalize_url(left.url) == normalize_url(right.url):
         return True
-    if not left.start or not right.start or abs((left.start.date() - right.start.date()).days) > 1:
+    if not left.start or not right.start:
         return False
-    # Distinct numbered/local editions must survive fuzzy matching.
     a, b = _tokens(left.title), _tokens(right.title)
-    if {t for t in a if t.isdigit()} != {t for t in b if t.isdigit()}:
-        return False
-    if left.location and right.location and not _same_place(left.location, right.location):
-        return False
     if not a or not b:
         return False
-    return token_set_similarity(a, b) >= 0.88
+    # Distinct numbered/local editions must survive fuzzy matching; a missing number or a year is not a conflict.
+    na, nb = _numbers(a), _numbers(b)
+    if na and nb and na != nb:
+        return False
+    ya, yb = {t for t in a if _YEAR.match(t)}, {t for t in b if _YEAR.match(t)}
+    if ya and yb and ya != yb:
+        return False
+    core_a = {t for t in a if not _YEAR.match(t)}
+    core_b = {t for t in b if not _YEAR.match(t)}
+    # Same distinctive name: aggregators disagree on dates (registration vs event days) and venue vs city.
+    exact = core_a == core_b and bool(core_a - _GENERIC - set(na))
+    if _days_apart(left, right) > (7 if exact else 1):
+        return False
+    if left.location and right.location and not _same_place(left.location, right.location):
+        km = _km(left, right)
+        if km is not None:
+            if km > 80:
+                return False
+        elif not exact or _days_apart(left, right) > 1:
+            return False
+    if exact:
+        return True
+    return token_set_similarity(core_a, core_b) >= 0.88
 
 
 def _authority(event: Event) -> int:

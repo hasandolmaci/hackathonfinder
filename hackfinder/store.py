@@ -87,6 +87,15 @@ def _past(event: Event, cutoff: str) -> bool:
     return when is not None and iso(when) < cutoff
 
 
+def _closed(event: Event, now: datetime, cutoff: str) -> bool:
+    """Not joinable any more: registration closed, or an in-person/hybrid event already under way.
+    Online submission windows that started earlier stay open until their end or deadline."""
+    if event.registration_deadline and event.registration_deadline < now:
+        return True
+    return (event.registration_deadline is None and event.start is not None and iso(event.start) < cutoff
+            and event.format in ("in-person", "hybrid"))
+
+
 def upsert_sources(conn: db.Connection, source: str, scope_key: str,
                    pairs: list[tuple[Event, Event]], seen_at: datetime) -> int:
     """Store (raw, processed) pairs for one source/scope. Seen rows become active again."""
@@ -163,7 +172,11 @@ def remerge(conn: db.Connection, now: datetime | None = None, reclassify_rows: b
         first_by_key[row["event_key"]] = min(first, row["first_seen"]) if first else row["first_seen"]
     metas = _source_metas() if reclassify_rows else {}
     events_by_row = [reclassify(r, metas) if reclassify_rows else Event.model_validate(db.loads(r["data"])) for r in rows]
-    current = [e for e in events_by_row if not _past(e, cutoff)]
+    current = [e for e in events_by_row if not _past(e, cutoff) and not _closed(e, now, cutoff)]
+    # Past source rows will never be shown again: delete them (a source that still lists one re-adds and loses it).
+    past = [(r["source"], r["ident"]) for r, e in zip(rows, events_by_row) if _past(e, cutoff)]
+    conn.executemany("DELETE FROM event_sources WHERE source = ? AND ident = ?", past)
+    conn.execute("DELETE FROM event_sources WHERE active = FALSE AND last_seen < ?", (iso(now - timedelta(days=14)),))
     existing = {r["key"]: r["first_seen"] for r in conn.fetchall("SELECT key, first_seen FROM events")}
     from .score import Context, prize_usd
     history = [Event.model_validate(db.loads(r["data"])) for r in conn.fetchall("SELECT data FROM events")]
@@ -193,15 +206,10 @@ def remerge(conn: db.Connection, now: datetime | None = None, reclassify_rows: b
                participants = excluded.participants, first_seen = excluded.first_seen,
                last_seen = excluded.last_seen, status = 'active', updated_at = excluded.updated_at""",
         merged.values())
+    # Everything not rebuilt in this merge is gone: expired, closed, vanished from its sources, or a duplicate
+    # whose key changed. Delete rather than hide, so the table only holds what the site shows.
+    conn.execute("DELETE FROM events WHERE updated_at <> ?", (stamp,))
     rescore(conn, context)
-    gone = conn.fetchall("SELECT key, start_at, end_at FROM events WHERE status <> ?", ("expired",))
-    updates = []
-    for row in gone:
-        if row["key"] in merged:
-            continue
-        when = row["end_at"] or row["start_at"]
-        updates.append(("expired" if when is not None and when < cutoff else "missing", stamp, row["key"]))
-    conn.executemany("UPDATE events SET status = ?, updated_at = ? WHERE key = ?", updates)
     return len(merged)
 
 
