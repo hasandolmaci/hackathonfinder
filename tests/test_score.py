@@ -277,7 +277,8 @@ def test_geo_api():
         with TestClient(app.app) as client:
             result = client.get('/api/hackathons?sort=score').json()['events']
             assert result[0]['score'] >= result[1]['score'] and result[-1]['score'] is None
-            assert 'text' not in result[0]['signals']
+            # Scraped internals and copyrighted/personal fields never leave the server.
+            assert not ({'signals', 'description', 'organizer'} & set(result[0]))
             threshold = result[0]['score']
             assert all(e['score'] >= threshold for e in client.get(f'/api/hackathons?min_score={threshold}').json()['events'])
             result = client.get(f'/api/hackathons?lat={ams[0]}&lon={ams[1]}&radius_km=25').json()

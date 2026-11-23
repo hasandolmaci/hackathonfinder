@@ -28,6 +28,9 @@ STATIC = ROOT / "static"
 CACHE_SECONDS = float(os.getenv("HF_API_CACHE_SECONDS", "30"))
 CDN_CACHE = "public, s-maxage=60, stale-while-revalidate=300"
 HIDDEN_KINDS = {"other", "unknown"}
+# Never sent to the browser: the listing renders none of these, and they are either copyrighted (description),
+# personal data (organizer), or raw scraped internals (signals).
+_PRIVATE_FIELDS = ("description", "organizer", "signals")
 
 app = FastAPI(title="Hackfinder")
 
@@ -247,8 +250,10 @@ def _listing(kinds: tuple, format: str | None, q: str, days: str, sort: str, ord
         event["country_code"], event["region"] = _place(row)
         event["country_name"] = country_name(event["country_code"])
         event["sponsors"] = _sponsors(row)
-        # Extraction-only source text is never part of the public listing.
-        event["signals"] = {k: v for k, v in event.get("signals", {}).items() if k != "text"}
+        # Keep scraped source text and the organizer's name on the server: the public listing never shows them,
+        # so the API must not hand out organizers' copyrighted descriptions or personal data to every caller.
+        for field in _PRIVATE_FIELDS:
+            event.pop(field, None)
         if lat is not None:
             event["distance_km"] = round(row["distance_km"], 3)
         events.append(event)
@@ -476,14 +481,34 @@ def sitemap(request: Request):
 
 _STATIC_PAGES = {"index.html": "/", "hackathons.html": "/hackathons", "near.html": "/near", "methodology.html": "/methodology"}
 
+# 'unsafe-inline' is kept because the pages carry small inline scripts (filter preset, analytics init) and inline
+# styles; the rest of the policy still blocks framing, external scripts, plugins and off-site form posts and beacons.
+# img allows Google's favicon service; connect/script allow Vercel's analytics; geolocation stays on for "Near me".
+_CSP = ("default-src 'self'; img-src 'self' https://www.google.com https://*.gstatic.com data:; "
+        "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://*.gstatic.com; "
+        "connect-src 'self' https://vitals.vercel-insights.com; object-src 'none'; "
+        "base-uri 'self'; form-action 'self'; frame-ancestors 'none'")
+_SECURITY_HEADERS = {
+    "Content-Security-Policy": _CSP,
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "geolocation=(self), camera=(), microphone=(), payment=(), usb=()",
+}
+
 
 @app.middleware("http")
-async def canonical_pages(request: Request, call_next):
-    """/static/<page>.html is the same page as its route: send people and crawlers to the route."""
+async def security_and_canonical(request: Request, call_next):
+    """Set security headers on every response, and send /static/<page>.html to its real route."""
     name = request.url.path.removeprefix("/static/")
     if request.url.path.startswith("/static/") and name in _STATIC_PAGES:
-        return RedirectResponse(_STATIC_PAGES[name], status_code=301)
-    return await call_next(request)
+        response = RedirectResponse(_STATIC_PAGES[name], status_code=301)
+    else:
+        response = await call_next(request)
+    for header, value in _SECURITY_HEADERS.items():
+        response.headers.setdefault(header, value)
+    return response
 
 
 app.mount("/static", StaticFiles(directory=STATIC, check_dir=False), name="static")
