@@ -6,6 +6,8 @@ must not import collectors or any scraping library, so the Vercel bundle stays s
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from html import escape
+import json
 import os
 import math
 import unicodedata
@@ -13,11 +15,11 @@ from pathlib import Path
 import threading
 import time
 
-from fastapi import FastAPI, HTTPException, Query, Response
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Query, Request, Response
+from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import db
+from . import db, seo
 from .categories import CATEGORIES, NEW_DAYS, SPONSORS, TYPES, categorize, flags, sponsors as find_sponsors, unpack
 from .regions import COUNTRIES, REGIONS, country_name, resolve
 
@@ -377,14 +379,111 @@ def sources(response: Response):
     return _cached(("sources",), _source_rows)
 
 
+def _page(name: str) -> str:
+    return (STATIC / f"{name}.html").read_text(encoding="utf-8")
+
+
+def _html(content: str) -> HTMLResponse:
+    return HTMLResponse(content, headers={"Cache-Control": CDN_CACHE})
+
+
+def _landing_counts() -> dict[str, int]:
+    def compute():
+        counts = {}
+        for slug, (_, _, f) in seo.LANDINGS.items():
+            counts[slug] = _listing(tuple(f.get("kinds", ("hackathon",))), f.get("format"), "", "all", "start", "asc",
+                                    1, 1, categories=f.get("categories", ()), regions=f.get("regions", ()),
+                                    countries=f.get("countries", ()))["total"]
+        return counts
+    return _cached(("landing_counts",), compute)
+
+
+def _directory(request: Request, slug: str | None, page: int) -> HTMLResponse:
+    """The directory page with its first rows, pagination links and metadata already in the HTML."""
+    if slug is not None and slug not in seo.LANDINGS:
+        raise HTTPException(404, "No such page")
+    heading, phrase, f = seo.LANDINGS[slug] if slug else ("Upcoming hackathons", "upcoming hackathons worldwide", {})
+    kinds = tuple(f.get("kinds", ("hackathon",)))
+    args = (kinds, f.get("format"), "", "all", "start", "asc", page, seo.PER_PAGE)
+    extra = dict(categories=f.get("categories", ()), regions=f.get("regions", ()), countries=f.get("countries", ()))
+    data = _cached(("ssr", slug, page), lambda: _listing(*args, **extra))
+    total, events = data["total"], data["events"]
+    pages = max(1, -(-total // seo.PER_PAGE))
+    if page > pages:
+        raise HTTPException(404, "No such page")
+    base = seo.site_url(str(request.base_url))
+    path = f"/hackathons/{slug}" if slug else "/hackathons"
+    text = seo.intro(phrase, total, events)
+    title = f"{heading} | {seo.SITE_NAME}" if slug else f"Upcoming hackathons worldwide | {seo.SITE_NAME}"
+    if page > 1:
+        title = f"{heading}, page {page} | {seo.SITE_NAME}"
+    crumbs = [{"@type": "ListItem", "position": 1, "name": "Hackathons", "item": f"{base}/hackathons"}]
+    if slug:
+        crumbs.append({"@type": "ListItem", "position": 2, "name": heading, "item": base + path})
+    ld = seo.json_ld({"@context": "https://schema.org", "@type": "CollectionPage", "name": heading, "description": text,
+                      "url": base + path, "breadcrumb": {"@type": "BreadcrumbList", "itemListElement": crumbs}})
+    preset = f"<script>window.HF_PRESET={json.dumps(seo.preset(f))};window.HF_PAGE={page};</script>"
+    canonical = base + path + (f"?page={page}" if page > 1 else "")
+    html = seo.with_head(_page("hackathons"), seo.head(title, text, canonical, ld + preset,
+                                                       noindex=bool(slug) and total < seo.MIN_EVENTS))
+    h1 = escape(heading) if slug else "Ready, set, build"
+    html = html.replace('<h1>Ready, set, build<span class="brand-dot">.</span></h1><p class="muted">Good opportunities. Zero noise. Your next project starts here.</p>',
+                        f'<h1>{h1}<span class="brand-dot">.</span></h1><p class="muted">{escape(text)}</p>')
+    html = html.replace('<tbody id="events-body"></tbody>', f'<tbody id="events-body">{seo.rows(events)}</tbody>')
+    html = html.replace('<strong id="result-count">—</strong>', f'<strong id="result-count">{total:,}</strong>')
+    html = html.replace('<footer class="pagination">', seo.pages_nav(path, page, total) + '<footer class="pagination">', 1)
+    html = html.replace('</p></section></main>', '</p>' + seo.browse_links(_landing_counts(), slug) + '</section></main>', 1)
+    return _html(html)
+
+
 @app.get("/")
-def landing():
-    return FileResponse(STATIC / "index.html")
+def landing(request: Request):
+    base = seo.site_url(str(request.base_url))
+    ld = seo.json_ld({"@context": "https://schema.org", "@type": "WebSite", "name": seo.SITE_NAME, "url": base + "/",
+                      "description": seo.TAGLINE})
+    html = seo.with_head(_page("index"), seo.head(
+        f"{seo.SITE_NAME}: {seo.TAGLINE}",
+        "Hackfinder lists upcoming hackathons, game jams and buildathons worldwide, online and near you, "
+        "with filters for country, topic and sponsor and an open score for every event.", base + "/", ld))
+    html = html.replace("</main>", seo.browse_links(_landing_counts()) + "</main>", 1)
+    return _html(html)
 
 
 @app.get("/hackathons")
-def listing():
-    return FileResponse(STATIC / "hackathons.html")
+def listing(request: Request, page: int = Query(1, ge=1, le=1000)):
+    return _directory(request, None, page)
+
+
+@app.get("/hackathons/{slug}")
+def landing_page(request: Request, slug: str, page: int = Query(1, ge=1, le=1000)):
+    return _directory(request, slug, page)
+
+
+@app.get("/robots.txt")
+def robots(request: Request):
+    return PlainTextResponse(seo.robots(seo.site_url(str(request.base_url))), headers={"Cache-Control": CDN_CACHE})
+
+
+@app.get("/sitemap.xml")
+def sitemap(request: Request):
+    base = seo.site_url(str(request.base_url))
+    updated = _updated_at(_cached(("sources",), _source_rows))
+    counts = _landing_counts()
+    paths = [("/", updated), ("/hackathons", updated), ("/near", None), ("/methodology", None)]
+    paths += [(f"/hackathons/{slug}", updated) for slug in seo.LANDINGS if counts.get(slug, 0) >= seo.MIN_EVENTS]
+    return Response(seo.sitemap(base, paths), media_type="application/xml", headers={"Cache-Control": CDN_CACHE})
+
+
+_STATIC_PAGES = {"index.html": "/", "hackathons.html": "/hackathons", "near.html": "/near", "methodology.html": "/methodology"}
+
+
+@app.middleware("http")
+async def canonical_pages(request: Request, call_next):
+    """/static/<page>.html is the same page as its route: send people and crawlers to the route."""
+    name = request.url.path.removeprefix("/static/")
+    if request.url.path.startswith("/static/") and name in _STATIC_PAGES:
+        return RedirectResponse(_STATIC_PAGES[name], status_code=301)
+    return await call_next(request)
 
 
 app.mount("/static", StaticFiles(directory=STATIC, check_dir=False), name="static")
@@ -419,10 +518,18 @@ def methodology(response: Response):
 
 
 @app.get("/near")
-def near():
-    return FileResponse(STATIC / "near.html")
+def near(request: Request):
+    base = seo.site_url(str(request.base_url))
+    return _html(seo.with_head(_page("near"), seo.head(
+        f"Hackathons near me | {seo.SITE_NAME}",
+        "Find in-person and hybrid hackathons near you. Pick a city or share your location and see events within 25 to 500 km.",
+        base + "/near")))
 
 
 @app.get("/methodology")
-def methodology_page():
-    return FileResponse(STATIC / "methodology.html")
+def methodology_page(request: Request):
+    base = seo.site_url(str(request.base_url))
+    return _html(seo.with_head(_page("methodology"), seo.head(
+        f"How the Hackfinder Score works | {seo.SITE_NAME}",
+        "The open formula behind the Hackfinder Score: how prizes, community size, support and evidence combine into a 0 to 100 rating.",
+        base + "/methodology")))
