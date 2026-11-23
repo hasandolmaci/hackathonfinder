@@ -43,7 +43,7 @@ def test_classification():
         "Student hackaton": "hackathon", "Hakaton": "hackathon",
         "ハッカソン": "hackathon", "해커톤": "hackathon", "黑客松": "hackathon",
         "Хакатон": "hackathon", "هاكاثون": "hackathon",
-        "Game Jam": "game_jam", "Community Jam": "game_jam",
+        "Game Jam": "game_jam", "Community Jam": "unknown",  # bare "jam" needs a game cue (music/comedy jams exist)
         "Capture the flag": "ctf", "CTF finals": "ctf", "Ideathon": "ideathon",
         "Coding competition": "coding_competition",
         "Info session about the hackathon": "info_session", "Hackathon workshop": "workshop",

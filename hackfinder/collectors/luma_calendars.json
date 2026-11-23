@@ -1,5 +1,5 @@
 {
- "comment": "Luma calendars that post hackathons, crawled in the luma scope \"calendars\" besides every calendar seen in the run. api_id from api.lu.ma/url?url=<slug> or from a discover entry. Update by hand.",
+ "comment": "Verified public Luma calendars. Full pass also expands discovered calendars and hosts. HF_LUMA_LEARN=1 merges calendars with at least two distinct relevant upcoming events and updates last_seen; default is read-only.",
  "calendars": [
   {
    "api_id": "cal-qTA84G1Wwdl14m4",
@@ -14,7 +14,8 @@
   {
    "api_id": "cal-UCNcNUQEeTHdcnt",
    "slug": "aitinkerers",
-   "name": "AI Tinkerers"
+   "name": "AI Tinkerers",
+   "last_seen": "2026-11-23"
   },
   {
    "api_id": "cal-qyEpCltsspbMoJR",
@@ -329,6 +330,57 @@
   {
    "api_id": "cal-F3Gpzc7jXmzCIrd",
    "name": "Hackers & Founders Santo Domingo"
+  },
+  {
+   "api_id": "cal-Vj4817DfRqH6PDC",
+   "name": "Anthropic",
+   "slug": "anthropicorg",
+   "last_seen": "2026-11-23"
+  },
+  {
+   "api_id": "cal-bl55Ki232KTKkOd",
+   "name": "START Berlin",
+   "slug": "start-berlin",
+   "last_seen": "2026-11-23"
+  },
+  {
+   "api_id": "cal-wLV0zHxRYR9ALqa",
+   "name": "START Berlin",
+   "slug": "STARTBerlin",
+   "last_seen": "2026-11-23"
+  },
+  {
+   "api_id": "cal-WZ5Oge8l6pOAFA2",
+   "name": "START Hack",
+   "slug": "STARTHack",
+   "last_seen": "2026-11-23"
+  },
+  {
+   "api_id": "cal-GniAq7TJCKTSnU2",
+   "name": "Azizjon Kasimov, Sang uk Park, Ajit Kumar, Allan",
+   "last_seen": "2026-11-23"
+  },
+  {
+   "api_id": "cal-tW3mKB2g1HH4jFy",
+   "name": "Sync Night",
+   "last_seen": "2026-11-23",
+   "slug": "syncnight"
+  },
+  {
+   "api_id": "cal-90T0RLTkXvs7vGS",
+   "name": "START Berlin",
+   "last_seen": "2026-11-23"
+  },
+  {
+   "api_id": "cal-J2eHkuYKRVnxQia",
+   "name": "Güven Karakuzu",
+   "last_seen": "2026-11-23"
+  },
+  {
+   "api_id": "cal-s0gp1lr8hRFn0Hi",
+   "name": "ETH Entrepreneur Club",
+   "last_seen": "2026-11-23",
+   "slug": "eth-entrepreneur-club"
   }
  ]
 }

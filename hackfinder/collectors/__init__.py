@@ -57,6 +57,8 @@ COLLECTOR_IDS = [
     "luma", "meetup", "eventbrite",
     # regional
     "netherlandshackathons",
+    # added 2026-11-23: organizer/university sites and country aggregators
+    "aanmelder", "argentinahackathons", "austriahackathons", "brainport", "canadahackathons", "colombiahackathons", "eurodefense", "eventornado", "francehackathons", "germanhackathons", "hackathonhongkong", "hackathonparty", "hackathonsaustralia", "hackathonsingapore", "hackatum", "indiahackathons", "indonesiahackathons", "italyhackathons", "japanhackathons", "koreahackathons", "mexicohackathons", "nzhackathons", "pakistanhackathons", "spainhackathons", "starthack", "startupamsterdam", "swedenhackathons", "taiwanhackathons", "techeurope", "thailandhackathons", "tudelft", "turkeyhackathons", "ukhackathons", "ushackathons", "vietnamhackathons", "vu", "yesdelft", "zukunftgesundheit",
 ]
 
 

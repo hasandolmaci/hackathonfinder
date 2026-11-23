@@ -27,6 +27,10 @@ MEETUP = (r"\b(meet-?ups?|socials|social (?:night|club|hour|evening|gathering|mi
 BUILD_EVENT = (r"\b(build[ -]?athon|datathon|makeathon|game jam)\b|[+&] ?(?:a |the )?(?:mini[- ]?)?(?:hackathon|buildathon)\b|"
                r"\b(?:hackathon|buildathon) ?[+&]")
 HACK_NIGHT = r"\bhack[ -]?nights?\b"
+GAME_JAM = (r"\b(game[ -]?jam|mini jam|game dev(?:elopment)?|itch(?:io)?|ggj\s*\d*|global game jam|"
+            r"ludum dare|code jam|hack jam)\b|ゲームジャム")
+JAM_OTHER = (r"\b(open mic|stand[ -]?up|comedy|jazz|music|band|acoustic|karaoke|dj|session|"
+             r"tiny desk|jam session|blues|poetry|christmas jam)\b")
 
 
 def classify(event: Event, source_meta: dict) -> Event:
@@ -75,15 +79,19 @@ def classify(event: Event, source_meta: dict) -> Event:
     elif re.search(HACK_NIGHT, title) and not building:
         kind, confidence = "meetup", 0.8
     else:
+        if re.search(r"\bjam\b", title) and not re.search(GAME_JAM, text) and re.search(JAM_OTHER, text):
+            kind, confidence = "other", 0.9
         rules = [
-            ("game_jam", r"\b(game[ -]?jam|ludum dare|global game jam|jam)\b|ゲームジャム"),
+            ("game_jam", GAME_JAM + r"|\bjam\b"),
             ("ctf", r"\b(ctf|capture[ -]the[ -]flag)\b"),
             ("ideathon", r"\b(ideathon|idea[ -]thon)\b"),
             ("hackathon", r"\b(hackathons?|hack[ -]?(day|night)|build[ -]?(athon|day|night)|datathon|makeathon|hackaton|hakaton|hackat[oó]n|hakat[oó]n)\b|ハッカソン|해커톤|黑客松|駭客松|хакатон|هاكاثون"),
             ("coding_competition", r"\b(coding competition|programming contest|algorithmic contest|kaggle competition)\b"),
         ]
         for candidate, pattern in rules:
-            if re.search(pattern, text):
+            if kind == "other":
+                break
+            if re.search(pattern, text) and (candidate != "game_jam" or re.search(GAME_JAM, text)):
                 kind, confidence = candidate, 0.85
                 break
         if kind == "unknown" and re.search(build, text):

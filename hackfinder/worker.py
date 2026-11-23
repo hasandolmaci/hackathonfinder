@@ -36,7 +36,8 @@ log = logging.getLogger(__name__)
 
 PASSES = {
     "quick": ["devpost", "devfolio", "unstop", "hackclub", "ctftime", "mlh", "taikai", "hackerearth", "luma",
-              "allhackathons", "zindi", "devnovate", "hack2skill", "hackquest", "commudle", "hackjunction", "netherlandshackathons"],
+              "allhackathons", "zindi", "devnovate", "hack2skill", "hackquest", "commudle", "hackjunction", "netherlandshackathons",
+              "aanmelder", "brainport", "eurodefense", "eventornado", "hackathonparty", "hackatum", "starthack", "startupamsterdam", "techeurope", "tudelft", "vu", "yesdelft", "zukunftgesundheit"],
     "browser": ["ethglobal", "kaggle", "itchio", "hackathoncom", "lablab",
                 "dorahacks", "encodeclub", "wemakedevs"],
     "full": None,  # every collector (minus LOCAL_ONLY when running in GitHub Actions)
@@ -46,7 +47,7 @@ PASSES = {
 # even to real Chrome, Global Game Jam Cloudflare 403). They work from a home connection.
 LOCAL_ONLY = ["eventbrite", "globalgamejam"]
 PASSES["local"] = LOCAL_ONLY
-SOURCE_TIMEOUT = {"quick": 15 * 60, "browser": 15 * 60, "full": 50 * 60, "local": 50 * 60}
+SOURCE_TIMEOUT = {"quick": 15 * 60, "browser": 15 * 60, "full": 75 * 60, "local": 50 * 60}
 MAX_PARALLEL = 6
 BLOCK_BACKOFF = timedelta(hours=2)
 _BLOCKED = re.compile(r"\b(403|429)\b|forbidden|too many requests", re.I)

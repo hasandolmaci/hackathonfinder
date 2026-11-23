@@ -47,12 +47,27 @@ def is_junk(event: Event) -> bool:
 
 def clean(event: Event) -> Event:
     """Display hygiene shared by all sources."""
+    start, end = event.start, event.end
+    now = utcnow()
+    if start is not None:
+        start = start.replace(tzinfo=timezone.utc) if start.tzinfo is None else start
+        if start > now + timedelta(days=365 * 2):
+            start, end = None, None
+    if start is not None and end is not None:
+        end = end.replace(tzinfo=timezone.utc) if end.tzinfo is None else end
+        if end < start:
+            if end < start - timedelta(days=1):
+                start, end = end, start
+            else:
+                end = None
+    elif end is not None and event.start is None:
+        end = end.replace(tzinfo=timezone.utc) if end.tzinfo is None else end
     prize = (event.prize or "").strip()
     if not prize or _ZERO_PRIZE.match(prize) or event.prize_usd == 0:
         prize = None
     elif len(prize) > 60:
         prize = prize[:57].rsplit(" ", 1)[0].rstrip(";,") + "…"
-    updates = {"prize": prize}
+    updates = {"prize": prize, "start": start, "end": end}
     if event.prize_usd == 0:
         updates["prize_usd"] = None
     return event.model_copy(update=updates)

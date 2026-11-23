@@ -1,31 +1,26 @@
-"""Public discovery JSON. Undocumented website endpoint; no login or key.
+"""Public Luma JSON: ranked keyword discovery plus cursor-paginated city/category feeds,
+calendar watchlist and hosts' public upcoming events. No login or browser.
 
-Scoped collector. Search returns at most 50 entries per request and ignores
-pagination, so coverage comes from many small scopes:
-- global / online queries (English plus multilingual spellings),
-- query x Luma place (explicit place IDs avoid the default feed's IP-based location bias),
-- "hackathon <city>" for cities without a place,
-- query x discover category (global only: with a place ID the category is ignored),
-- a final "calendars" scope that lists the upcoming events of every organizer calendar seen
-  in the earlier scopes plus the seeds in luma_calendars.json (api.lu.ma/calendar/get-items,
-  paginated by cursor, so a calendar is read completely).
-A scope that returns exactly 50 is saturated and logged.
-
-Measured 2026-11-22: the discover endpoint ignores offset/page/cursor, pagination_limit > 50,
-period=future, date parameters, sort and event_type; latitude/longitude only nudge the ranking.
+Website JS (2026-11-23): search uses get-paginated-events once; the no-query city feed
+uses pagination_cursor / pagination_limit and next_cursor / has_more. City feeds are
+curated, NOT every event in a city. Calendar and host listings recover unindexed events.
+RANKED_SEARCH remains necessary. HF_LUMA_LEARN=1 persists observed calendar evidence.
+Sitemaps are not crawled: sitemap.luma.com/robots.txt returns 403.
 """
 import json
 import logging
+import os
 import re
 import time
 import unicodedata
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urljoin
 
 import httpx
 
 from hackfinder.models import Event
-from ._signals_util import geo
+from ._signals_util import geo, names, reward
 from ._vertical_util import MAX_PAGES, client, dt, plain, polite_json, robots, upcoming, walk, warn_limit
 
 SOURCE = {"id": "luma", "name": "Luma", "url": "https://luma.com/discover",
@@ -47,7 +42,7 @@ BIG_PLACES = ["nyc", "sf", "london", "berlin", "paris", "bengaluru", "singapore"
 CATEGORIES = ["tech", "ai", "arts", "climate", "crypto", "family"]
 CATEGORY_QUERIES = ["hack", "hackathon"]
 CALENDARS_FILE = Path(__file__).with_name("luma_calendars.json")
-CALENDAR_BUDGET = 15 * 60  # Seconds for the whole "calendars" scope; the busiest calendars go first.
+
 QUICK_PLACES = ["sf", "nyc", "london", "berlin", "amsterdam", "paris", "bengaluru", "singapore"]
 # Cities without a Luma place (and a few extra); searched as "hackathon <city>".
 CITY_QUERIES = [
@@ -68,14 +63,22 @@ CITY_QUERIES = [
     "Cleveland", "Tampa", "Ottawa", "Winnipeg",
 ]
 # Words that mark a hackathon-like event in the name or description.
-RELEVANT = re.compile(r"hack|buildathon|datathon|makeathon|ideathon|game jam|codefest|build day|build night|"
+RELEVANT = re.compile(r"hack|buildathon|datathon|makeathon|ideathon|game[ -]jam|codefest|build day|build night|"
                       r"ハッカソン|해커톤|hackaton|hakaton", re.I)
 log = logging.getLogger(__name__)
 _places: dict[str, str] = {}
 _categories: dict[str, str] = {}
 _calendars: dict[str, dict] = {}  # api_id -> {"name", "hits"}: calendars that posted a relevant event this run
+_hosts: dict[str, dict] = {}
+_entries: dict[str, dict] = {}
 _blocked = 0
 _checked = False
+
+
+def _text(entry, raw):
+    return raw.get("description") or raw.get("description_md") or " ".join(
+        x.get("text", "") for x in walk(entry.get("description_mirror") or raw.get("description_mirror"))
+        if x.get("type") == "text")
 
 
 def _signals(entry, raw, hosts, calendar):
@@ -86,8 +89,7 @@ def _signals(entry, raw, hosts, calendar):
     cents = price.get("cents") if isinstance(price.get("cents"), (int, float)) else 0
     paid = ticket.get("is_free") is False or cents > 0
     guests = entry.get("guest_count")
-    text = raw.get("description") or raw.get("description_md") or " ".join(
-        x.get("text", "") for x in walk(entry.get("description_mirror")) if x.get("type") == "text")
+    text = _text(entry, raw)
     signals = {
         "guests": guests if isinstance(guests, int) and guests > 0 and not raw.get("hide_rsvp") else None,
         "hosts": [x["name"] for x in entry.get("hosts", []) if x.get("name")] or None,
@@ -97,7 +99,17 @@ def _signals(entry, raw, hosts, calendar):
         "entry_fee": f"{cents / 100:.2f} {str(price.get('currency') or '').upper()}".strip() if cents > 0 else None,
         "featured": True if entry.get("featured_guests") else None,
         "text": " ".join(str(text or "").split())[:3000] or None,
+        "registrations": guests if isinstance(guests, int) and not raw.get("hide_rsvp") else None,
+        "host_ids": [x["api_id"] for x in entry.get("hosts", []) if x.get("api_id")] or None,
+        "sponsors": names(entry.get("sponsors")) or None,
+        "themes": names(entry.get("categories")) or None,
     }
+    # Only explicit prize sentences: entry fees, credits and API budgets are not cash prizes.
+    for sentence in re.split(r"[\n.!?]", text):
+        if re.search(r"\b(?:cash prize|prize pool|prizes?)\b", sentence, re.I) and not re.search(r"\b(?:credits?|vouchers?)\b", sentence, re.I):
+            signals.update(reward(sentence))
+            if signals.get("prize_amount") is not None:
+                break
     info = raw.get("geo_address_info") or {}
     coordinate = raw.get("coordinate") or {}
     signals.update(geo(coordinate.get("latitude", raw.get("geo_latitude")), coordinate.get("longitude", raw.get("geo_longitude")),
@@ -107,6 +119,8 @@ def _signals(entry, raw, hosts, calendar):
 
 def _event(entry):
     raw = entry.get("event") or {}
+    if raw.get("cancelled_at") or raw.get("canceled_at") or raw.get("status") in ("cancelled", "canceled"):
+        return None
     if not raw.get("name") or not raw.get("url"):
         return None
     start, end = dt(raw.get("start_at")), dt(raw.get("end_at"))
@@ -127,11 +141,12 @@ def _event(entry):
     title = raw["name"]
     tags = [tag for word, tag in [(" ai", "ai"), ("agent", "ai"), ("web3", "web3"), ("climate", "climate")]
             if word in (" " + title).lower()]
-    return Event(signals=_signals(entry, raw, hosts, calendar),
+    signals = _signals(entry, raw, hosts, calendar)
+    prize = f"{signals['prize_amount']:g} {signals['prize_currency']}" if "prize_amount" in signals else None
+    return Event(signals=signals, prize=prize,
                  source="luma", source_id=raw.get("api_id") or entry.get("api_id"),
                  title=title, url=urljoin("https://luma.com/", raw["url"]),
-                 description=plain(raw.get("description") or raw.get("description_md") or " ".join(
-                     x.get("text", "") for x in walk(entry.get("description_mirror")) if x.get("type") == "text")),
+                 description=plain(_text(entry, raw)),
                  image=raw.get("cover_url"), start=start, end=end,
                  format=fmt, location=None if fmt == "online" else location,
                  country=None if fmt == "online" else geo.get("country"),
@@ -163,12 +178,43 @@ def _get(c, params):
         robots(c, API + "/discover/get-paginated-events")
         _checked = True
     try:
+        params = dict(params)
         data = polite_json(c, API + params.pop("_path", "/discover/get-paginated-events"), params=params)
         _blocked = 0
         return data
     except RuntimeError as exc:
         _blocked += str(exc).startswith("blocked")
         raise
+
+
+def _pages(c, params):
+    """The website's pagination_cursor/next_cursor contract, with stalled-page protection."""
+    seen, cursors = set(), set()
+    for _ in range(MAX_PAGES):
+        data = _get(c, params)
+        rows = data.get("entries")
+        if not isinstance(rows, list):
+            raise RuntimeError("Luma listing response changed: missing entries")
+        fresh = []
+        for row in rows:
+            raw = row.get("event") or {}
+            key = raw.get("api_id") or row.get("api_id") or raw.get("url")
+            if key and key not in seen:
+                seen.add(key)
+                fresh.append(row)
+        if not fresh:
+            break
+        yield fresh
+        cursor = data.get("next_cursor") or data.get("pagination_cursor")
+        if data.get("has_more") is False or not cursor:
+            break
+        if cursor in cursors:
+            log.warning("Luma cursor stalled for %s", params)
+            break
+        cursors.add(cursor)
+        params = {**params, "pagination_cursor": cursor}
+    else:
+        warn_limit(__name__, str(params))
 
 
 def _load_places(c):
@@ -202,6 +248,9 @@ def calendar_order(seeds: dict[str, str], seen: dict[str, dict]) -> list[tuple[s
 
 
 def scopes(pass_name: str) -> list[str]:
+    _calendars.clear()
+    _hosts.clear()
+    _entries.clear()
     online = [f"{kind}:{q}" for q in QUERIES for kind in ("global", "online")]
     if pass_name != "full":
         return [s for s in online if s.endswith(":hackathon")] + [f"place:{p}:hackathon" for p in QUICK_PLACES]
@@ -211,7 +260,9 @@ def scopes(pass_name: str) -> list[str]:
             + [f"place:{p}:{q}" for p in places for q in (QUERIES if p in BIG_PLACES else PLACE_QUERIES)]
             + [f"city:{city}" for city in CITY_QUERIES]
             + [f"cat:{slug}:{q}" for slug in CATEGORIES if slug in _categories for q in CATEGORY_QUERIES]
-            + ["calendars"])
+            + [f"feed:{p}" for p in places]
+            + [f"category:{slug}" for slug in CATEGORIES if slug in _categories]
+            + ["calendars", "hosts", "details"])
 
 
 def relevant_events(entries, city=None) -> dict[str, Event]:
@@ -220,63 +271,172 @@ def relevant_events(entries, city=None) -> dict[str, Event]:
     events = {}
     for entry in entries:
         raw = entry.get("event") or {}
-        if not RELEVANT.search(raw.get("name", "") + " " + (raw.get("description") or "")):
+        if not RELEVANT.search(raw.get("name", "") + " " + _text(entry, raw)):
             continue
         if city and not _in_city(entry, city):
             continue
         event = _event(entry)
         if event and event.source_id:
             events[event.source_id] = event
-            calendar = entry.get("calendar") or {}
-            if calendar.get("api_id"):
-                seen = _calendars.setdefault(calendar["api_id"], {"name": calendar.get("name") or "", "hits": 0})
-                seen["hits"] += 1
+            _entries[event.source_id] = entry
+            calendar = entry.get("calendar") or {"api_id": raw.get("calendar_api_id")}
+            _remember_calendar(calendar, event.source_id)
+            for host in entry.get("hosts") or []:
+                if host.get("api_id"):
+                    _hosts[host["api_id"]] = host
+            if raw.get("user_api_id"):
+                _hosts.setdefault(raw["user_api_id"], {"api_id": raw["user_api_id"]})
     return events
 
 
-def _collect_calendars() -> list[Event]:
-    """Every upcoming event of every known calendar (cursor pagination), relevance-filtered.
-    Stops at CALENDAR_BUDGET seconds and logs how many calendars were left."""
-    order = calendar_order(seed_calendars(), _calendars)
-    started, events, done = time.monotonic(), {}, 0
+def _remember_calendar(calendar, event_id=None):
+    api_id = calendar.get("api_id")
+    if not api_id:
+        return
+    seen = _calendars.setdefault(api_id, {"name": calendar.get("name") or "", "hits": 0, "events": set()})
+    if calendar.get("name"):
+        seen["name"] = calendar["name"]
+    if calendar.get("slug"):
+        seen["slug"] = calendar["slug"]
+    if event_id:
+        seen["events"].add(event_id)
+        seen["hits"] = len(seen["events"])
+
+
+def learn_calendars():
+    """Opt-in, atomic merge. Repeated search hits don't make a calendar hackathon-heavy."""
+    if os.environ.get("HF_LUMA_LEARN") != "1":
+        return
+    try:
+        data = json.loads(CALENDARS_FILE.read_text(encoding="utf-8"))
+        rows = {x["api_id"]: x for x in data.get("calendars", [])}
+        today = datetime.now(timezone.utc).date().isoformat()
+        for api_id, seen in _calendars.items():
+            if not seen["hits"] or (api_id not in rows and seen["hits"] < 2):
+                continue
+            row = rows.setdefault(api_id, {"api_id": api_id})
+            row.update(name=seen["name"], last_seen=today)
+            if seen.get("slug"):
+                row["slug"] = seen["slug"]
+        data["calendars"] = list(rows.values())
+        # Replace atomically; do not leave an extra tracked file behind.
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=CALENDARS_FILE.parent,
+                                         prefix=".luma-", suffix=".tmp", delete=False) as f:
+            json.dump(data, f, ensure_ascii=False, indent=1)
+            f.write("\n")
+        try:
+            os.replace(f.name, CALENDARS_FILE)
+        finally:
+            Path(f.name).unlink(missing_ok=True)
+    except (OSError, ValueError):
+        log.exception("could not save Luma calendar watchlist")
+
+
+def _over_budget(started, what):
+    """Expansion scopes (calendars/hosts/details) each get HF_LUMA_EXPAND_SECONDS (default 15 min)."""
+    if time.monotonic() - started > float(os.environ.get("HF_LUMA_EXPAND_SECONDS", "900")):
+        log.warning("luma %s: time budget reached, keeping what was found", what)
+        return True
+    return False
+
+
+def _collect_calendars(order=None):
+    """No time/event cap; exhaust each calendar, up to the shared 100-page safety limit."""
+    order = calendar_order(seed_calendars(), _calendars) if order is None else order
+    events = {}
     with client(timeout=10) as c:
+        started = time.monotonic()
         for api_id, name in order:
-            if time.monotonic() - started > CALENDAR_BUDGET:
-                log.warning("calendars budget of %ds reached: %d of %d calendars crawled", CALENDAR_BUDGET, done, len(order))
+            if _over_budget(started, 'calendars'):
                 break
-            cursor = None
-            for _ in range(MAX_PAGES):
-                params = {"_path": "/calendar/get-items", "calendar_api_id": api_id, "period": "future",
-                          "pagination_limit": PAGE}
-                if cursor:
-                    params["pagination_cursor"] = cursor
-                try:
-                    data = _get(c, params)
-                except httpx.HTTPStatusError as exc:  # a deleted or private calendar must not stop the rest
-                    log.info("calendar %s (%s) skipped: HTTP %s", api_id, name, exc.response.status_code)
-                    break
-                if not isinstance(data.get("entries"), list):
-                    raise RuntimeError("Luma calendar response changed: missing entries")
-                events.update(relevant_events(data["entries"]))
-                cursor = data.get("next_cursor")
-                if not (data.get("has_more") and cursor):
-                    break
-            else:
-                warn_limit(__name__, f"calendar {api_id}")
-            done += 1
-    log.info("calendars: %d crawled, %d relevant upcoming events", done, len(events))
+            try:
+                for rows in _pages(c, {"_path": "/calendar/get-items", "calendar_api_id": api_id,
+                                       "period": "future", "pagination_limit": PAGE}):
+                    events.update(relevant_events(rows))
+            except httpx.HTTPStatusError as exc:
+                if exc.response.status_code not in (400, 404, 410):
+                    raise
+                log.info("calendar %s (%s) skipped: HTTP %s", api_id, name, exc.response.status_code)
+    learn_calendars()
+    log.info("calendars: %d crawled, %d relevant upcoming events", len(order), len(events))
+    return list(events.values())
+
+
+def _collect_hosts():
+    """One host expansion from discovery/calendars, then their newly seen calendars.
+    Don't recursively traverse hosts-of-hosts: that unbounded social graph is not a daily feed.
+    """
+    events, known = {}, set(seed_calendars()) | set(_calendars)
+    hosts = list(_hosts)
+    with client(timeout=10) as c:
+        started = time.monotonic()
+        for api_id in hosts:
+            if _over_budget(started, 'hosts'):
+                break
+            try:
+                for rows in _pages(c, {"_path": "/user/profile/events-hosting", "user_api_id": api_id,
+                                       "period": "future", "pagination_limit": PAGE}):
+                    events.update(relevant_events(rows))
+            except httpx.HTTPStatusError as exc:
+                if exc.response.status_code not in (400, 404, 410):
+                    raise
+                log.info("host %s skipped: HTTP %s", api_id, exc.response.status_code)
+    extra = [(k, v["name"]) for k, v in _calendars.items() if k not in known]
+    events.update({e.source_id: e for e in _collect_calendars(extra)})
+    learn_calendars()
+    log.info("hosts: %d crawled, %d relevant upcoming events", len(hosts), len(events))
+    return list(events.values())
+
+
+def _collect_details():
+    """One detail per unique event, after expansion; quick discovery makes no detail requests."""
+    events = {}
+    with client(timeout=10) as c:
+        started = time.monotonic()
+        for api_id, entry in list(_entries.items()):
+            if _over_budget(started, 'details'):
+                break
+            if not api_id.startswith("evt-"):
+                continue  # External calendar entries already carry their original registration URL.
+            try:
+                detail = _get(c, {"_path": "/event/get", "event_api_id": api_id})
+            except httpx.HTTPStatusError as exc:
+                if exc.response.status_code not in (404, 410):
+                    raise
+                continue
+            merged = {**entry, **detail, "event": {**entry["event"], **detail.get("event", {})}}
+            events.update(relevant_events([merged]))
+            for calendar in detail.get("collaborating_calendars") or []:
+                _remember_calendar(calendar.get("calendar", calendar), api_id)
+    learn_calendars()
     return list(events.values())
 
 
 def collect_scope(scope: str) -> list[Event]:
-    """One request (Luma caps a response at 50 entries), except "calendars", which pages through each calendar."""
+    """Search stays small; feeds, calendars and hosts follow actual cursor pagination."""
     if scope == "calendars":
         return _collect_calendars()
+    if scope == "hosts":
+        return _collect_hosts()
+    if scope == "details":
+        return _collect_details()
     kind, _, rest = scope.partition(":")
     params = {"pagination_limit": PAGE}
     city = None
     with client(timeout=6) as c:
-        if kind == "place":
+        if kind in ("feed", "category"):
+            _load_places(c)
+            key = "discover_place_api_id" if kind == "feed" else "discover_category_api_id"
+            params[key] = (_places if kind == "feed" else _categories)[rest]
+            if kind == "feed":
+                featured = _get(c, {"_path": "/discover/get-calendars", key: params[key]})
+            else:
+                featured = _get(c, {"_path": "/url", "url": rest}).get("data", {})
+            for node in walk(featured):
+                if str(node.get("api_id", "")).startswith("cal-"):
+                    _remember_calendar(node)
+        elif kind == "place":
             slug, _, query = rest.partition(":")
             params.update(query=query, discover_place_api_id=_load_places(c)[slug])
         elif kind == "cat":
@@ -287,17 +447,17 @@ def collect_scope(scope: str) -> list[Event]:
             city, params["query"] = rest, "hackathon " + rest
         else:
             params["query"] = rest if kind == "global" else "online " + rest
-        data = _get(c, params)
-    if not isinstance(data.get("entries"), list):
-        raise RuntimeError("Luma discovery response changed: missing entries")
-    if len(data["entries"]) >= PAGE:
-        log.info("saturated scope %s: %d entries (more may exist)", scope, len(data["entries"]))
-    return list(relevant_events(data["entries"], city).values())
+        events = {}
+        for rows in _pages(c, params):
+            if params.get("query") and len(rows) >= PAGE:
+                log.info("saturated scope %s: %d entries (more may exist)", scope, len(rows))
+            events.update(relevant_events(rows, city))
+    return list(events.values())
 
 
 def collect() -> list[Event]:
     events: dict[str, Event] = {}
-    for scope in scopes("full"):
+    for scope in scopes(os.environ.get("HF_LUMA_PASS", "full")):
         for event in collect_scope(scope):
-            events[event.url] = event
+            events[event.source_id] = event
     return sorted(events.values(), key=lambda e: e.start.isoformat() if e.start else "9999")
