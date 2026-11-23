@@ -219,7 +219,7 @@ def init(*, places: bool = False) -> None:
 
         columns = {"score": "SMALLINT", "score_conf": "TEXT", "score_detail": "JSONTYPE",
                    "score_version": "TEXT", "lat": "REALTYPE", "lon": "REALTYPE",
-                   "cats": "TEXT", "flags": "TEXT", "country_code": "TEXT", "region": "TEXT"}
+                   "cats": "TEXT", "flags": "TEXT", "country_code": "TEXT", "region": "TEXT", "sponsors": "TEXT"}
         present = {r["name"] for r in conn.fetchall("PRAGMA table_info(events)")} if conn.kind == "sqlite" else set()
         for name, type_name in columns.items():
             if conn.kind == "postgres":

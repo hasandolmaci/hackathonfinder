@@ -24,4 +24,4 @@ async function load(){try{const [stats,result]=await Promise.all([api('/api/stat
 load();
 
 const place=savedLocation();
-if(place)api(`/api/hackathons?${new URLSearchParams({lat:place.lat,lon:place.lon,radius_km:100,sort:'distance',kinds:'hackathon',per_page:1})}`).then(r=>{$('near-link').textContent=`Near you · ${number(r.total)} within 100 km`;}).catch(()=>{});
+if(place)api(`/api/hackathons?${new URLSearchParams({lat:place.lat,lon:place.lon,radius_km:100,sort:'distance',kinds:'hackathon',per_page:1})}`).then(r=>{$('near-link').textContent=`Near me · ${number(r.total)} within 100 km`;}).catch(()=>{});

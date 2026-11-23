@@ -247,7 +247,7 @@ def record_run(conn: db.Connection, *, pass_name: str, source: str, scope_key: s
 
 def rescore(conn: db.Connection, context=None) -> int:
     """Refresh every stored score, coordinate, category, flag, country and region, including historical editions."""
-    from .categories import categorize, flags, pack
+    from .categories import categorize, flags, pack, sponsors
     from .geo import locate
     from .geocoder import Geocoder
     from .regions import country_name, resolve
@@ -266,14 +266,14 @@ def rescore(conn: db.Connection, context=None) -> int:
     for row, event in zip(rows, events):
         result = score_event(event, context)
         lat, lon, geo_code = locate(event, online if row["status"] == "active" else None)
-        cats, event_flags = categorize(event), flags(event)
+        cats, event_flags, brands = categorize(event), flags(event), sponsors(event)
         code, region = resolve(event, geo_code=geo_code)
         data = {**db.loads(row["data"]), "categories": cats, "flags": event_flags,
-                "country_code": code, "region": region, "country_name": country_name(code)}
+                "country_code": code, "region": region, "country_name": country_name(code), "sponsors": brands}
         updates.append((result["score"], result["score_confidence"], db.dumps(result["score_detail"]),
-                        VERSION, lat, lon, pack(cats), pack(event_flags), code, region, db.dumps(data), row["key"]))
+                        VERSION, lat, lon, pack(cats), pack(event_flags), code, region, pack(brands), db.dumps(data), row["key"]))
     conn.executemany("""UPDATE events SET score = ?, score_conf = ?, score_detail = CAST(? AS JSONTYPE),
-                        score_version = ?, lat = ?, lon = ?, cats = ?, flags = ?, country_code = ?, region = ?,
+                        score_version = ?, lat = ?, lon = ?, cats = ?, flags = ?, country_code = ?, region = ?, sponsors = ?,
                         data = CAST(? AS JSONTYPE)
                         WHERE key = ?""", updates)
     return len(updates)

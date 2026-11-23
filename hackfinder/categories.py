@@ -207,6 +207,62 @@ def flags(event: Event) -> list[str]:
     return found
 
 
+# Sponsor brands people filter by. id -> (display name, case-sensitive aliases; products count for their maker).
+SPONSORS = {
+    "openai": ("OpenAI", r"OpenAI|Open AI|ChatGPT|OpenAI Codex"),
+    "anthropic": ("Anthropic", r"Anthropic|Claude(?: Code| Community| Builder| AI)?"),
+    "google": ("Google", r"Google(?: Cloud| DeepMind| for Developers| Developer Groups)?|DeepMind|Gemini|GDG"),
+    "microsoft": ("Microsoft", r"Microsoft|Azure|GitHub Copilot"),
+    "aws": ("AWS", r"AWS|Amazon Web Services|Amazon Bedrock"),
+    "meta": ("Meta", r"Meta(?= AI| Llama| Platforms)|Llama"),
+    "nvidia": ("NVIDIA", r"NVIDIA|Nvidia"),
+    "n8n": ("n8n", r"n8n|N8N"),
+    "elevenlabs": ("ElevenLabs", r"ElevenLabs|Eleven Labs"),
+    "lovable": ("Lovable", r"Lovable"),
+    "cursor": ("Cursor", r"Cursor"),
+    "supabase": ("Supabase", r"Supabase"),
+    "vercel": ("Vercel", r"Vercel|v0\.dev"),
+    "replit": ("Replit", r"Replit"),
+    "mistral": ("Mistral AI", r"Mistral(?: AI)?"),
+    "huggingface": ("Hugging Face", r"Hugging ?Face"),
+    "github": ("GitHub", r"GitHub(?! Copilot)"),
+    "databricks": ("Databricks", r"Databricks"),
+    "mongodb": ("MongoDB", r"MongoDB"),
+    "cloudflare": ("Cloudflare", r"Cloudflare"),
+    "stripe": ("Stripe", r"Stripe"),
+    "groq": ("Groq", r"Groq"),
+    "perplexity": ("Perplexity", r"Perplexity"),
+    "langchain": ("LangChain", r"LangChain|LangGraph"),
+    "cohere": ("Cohere", r"Cohere"),
+    "ibm": ("IBM", r"IBM"),
+    "intel": ("Intel", r"Intel"),
+    "amd": ("AMD", r"AMD"),
+    "qualcomm": ("Qualcomm", r"Qualcomm"),
+    "coinbase": ("Coinbase", r"Coinbase"),
+    "solana": ("Solana", r"Solana"),
+    "ethereum": ("Ethereum Foundation", r"Ethereum Foundation|ETHGlobal"),
+    "polygon": ("Polygon", r"Polygon(?= Labs| Network| Foundation)"),
+    "chainlink": ("Chainlink", r"Chainlink"),
+}
+_SPONSOR_RE = {sid: re.compile(r"(?<![\w.])(?:" + aliases + r")(?!\w)") for sid, (_, aliases) in SPONSORS.items()}
+_SPONSOR_CONTEXT = re.compile(
+    r"(?:sponsor(?:ed|s|ship)?(?: by)?|powered by|presented by|hosted by|supported by|in partnership with|"
+    r"in collaboration with|partners?|backed by|brought to you by|organi[sz]ed by|prizes? from|credits? from)\W",
+    re.I)
+
+
+def sponsors(event: Event) -> list[str]:
+    """Sponsor brand ids: from the explicit sponsor list, the organizer, the title, and description text right
+    after phrases like "sponsored by" / "powered by" / "partners". Brand mentions elsewhere do not count."""
+    from .score import extract
+    listed = " | ".join(str(s) for s in extract(event).get("sponsors", []))
+    parts = [listed, event.organizer or "", event.title]
+    for text in (event.description or "", _text(event)):
+        parts += [text[m.end():m.end() + 250] for m in _SPONSOR_CONTEXT.finditer(text)]
+    blob = "\n".join(parts)
+    return [sid for sid, pattern in _SPONSOR_RE.items() if pattern.search(blob)]
+
+
 def pack(values: list[str]) -> str:
     """Comma-wrapped text for SQL filtering: ['ai', 'web3'] -> ',ai,web3,'; [] -> ','."""
     return "," + "".join(v + "," for v in values) if values else ","

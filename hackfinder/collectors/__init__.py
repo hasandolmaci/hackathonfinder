@@ -59,7 +59,7 @@ COLLECTOR_IDS = [
     "netherlandshackathons",
     # added 2026-11-23: organizer/university sites and country aggregators
     "aanmelder", "argentinahackathons", "austriahackathons", "brainport", "canadahackathons", "colombiahackathons", "eurodefense", "eventornado", "francehackathons", "germanhackathons", "hackathonhongkong", "hackathonparty", "hackathonsaustralia", "hackathonsingapore", "hackatum", "indiahackathons", "indonesiahackathons", "italyhackathons", "japanhackathons", "koreahackathons", "mexicohackathons", "nzhackathons", "pakistanhackathons", "spainhackathons", "starthack", "startupamsterdam", "swedenhackathons", "taiwanhackathons", "techeurope", "thailandhackathons", "tudelft", "turkeyhackathons", "ukhackathons", "ushackathons", "vietnamhackathons", "vu", "yesdelft", "zukunftgesundheit",
-    # added 2026-11-23 (group C): platforms and single-organizer sites HackathonRadar indexes
+    # added 2026-11-23 (group C): more platforms and single-organizer sites
     "aitinkerers", "builderbase", "circuitfeed", "colosseum", "dubhacks", "govtechnl", "hackbarna", "hackculture", "hackindia", "hackmeridian", "hackmty", "hackonvibe", "hackrice", "hackspain", "hackuk", "indehub", "loops", "makefun", "raptors", "shenicest", "stormhacks", "superteam", "sye", "twohero", "whereuelevate",
 ]
 

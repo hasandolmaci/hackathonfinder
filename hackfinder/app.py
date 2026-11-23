@@ -18,7 +18,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from . import db
-from .categories import CATEGORIES, NEW_DAYS, TYPES, categorize, flags, unpack
+from .categories import CATEGORIES, NEW_DAYS, SPONSORS, TYPES, categorize, flags, sponsors as find_sponsors, unpack
 from .regions import COUNTRIES, REGIONS, country_name, resolve
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -126,6 +126,14 @@ def _taxonomy(row: dict, now: datetime) -> tuple[list, list]:
     return cats, found
 
 
+def _sponsors(row: dict) -> list[str]:
+    """Sponsor brand ids from the indexed column (computed on the fly before the first rescore)."""
+    if row.get("sponsors") is None:
+        from .models import Event
+        return find_sponsors(Event.model_validate(db.loads(row["data"])))
+    return unpack(row["sponsors"])
+
+
 def _place(row: dict) -> tuple[str | None, str | None]:
     """(country_code, region) from the indexed columns (computed on the fly before the first rescore)."""
     if row.get("region") is None and row.get("country_code") is None:
@@ -142,9 +150,11 @@ def _foryou(row: dict, interests: tuple) -> float:
 def _listing(kinds: tuple, format: str | None, q: str, days: str, sort: str, order: str,
              page: int, per_page: int, min_score=None, lat=None, lon=None, radius_km=100,
              categories: tuple = (), types: tuple = (), interests: tuple = (),
-             regions: tuple = (), countries: tuple = ()) -> dict:
+             regions: tuple = (), countries: tuple = (), brands: tuple = ()) -> dict:
     now = utcnow()
     where, params = _upcoming_where(now, list(kinds))
+    if brands:  # any of the chosen sponsors
+        where += " AND (" + " OR ".join(_has("sponsors", b) for b in brands) + ")"
     if categories:
         where += " AND (" + " OR ".join(_has("cats", c) for c in categories) + ")"
     for kind_flag in types:
@@ -203,7 +213,7 @@ def _listing(kinds: tuple, format: str | None, q: str, days: str, sort: str, ord
         order_params = []
     with db.connect() as conn:
         total = int(conn.fetchone(f"SELECT COUNT(*) AS n FROM events WHERE {where}", params)["n"])
-        select = "data, first_seen, last_seen, score, score_conf, score_detail, lat, lon, cats, flags, start_at, country_code, region"
+        select = "data, first_seen, last_seen, score, score_conf, score_detail, lat, lon, cats, flags, start_at, country_code, region, sponsors"
         if sort == "foryou" and lat is None:
             rows = conn.fetchall(f"SELECT {select} FROM events WHERE {where}", params)
             rows.sort(key=lambda r: (-_foryou(r, interests), r["start_at"] or "9", r["first_seen"]))
@@ -234,6 +244,7 @@ def _listing(kinds: tuple, format: str | None, q: str, days: str, sort: str, ord
         event["categories"], event["flags"] = _taxonomy(row, now)
         event["country_code"], event["region"] = _place(row)
         event["country_name"] = country_name(event["country_code"])
+        event["sponsors"] = _sponsors(row)
         # Extraction-only source text is never part of the public listing.
         event["signals"] = {k: v for k, v in event.get("signals", {}).items() if k != "text"}
         if lat is not None:
@@ -255,7 +266,7 @@ def hackathons(response: Response, kinds: str = "hackathon",
                lon: float | None = Query(None, ge=-180, le=180),
                radius_km: float = Query(100, gt=0, le=2000),
                categories: str = "", types: str = "", interests: str = "",
-               region: str = "", country: str = ""):
+               region: str = "", country: str = "", sponsors: str = ""):
     response.headers["Cache-Control"] = CDN_CACHE
     if (lat is None) != (lon is None) or (sort == "distance" and lat is None):
         raise HTTPException(422, "Distance search requires both lat and lon")
@@ -263,12 +274,12 @@ def hackathons(response: Response, kinds: str = "hackathon",
     order = order or ("desc" if sort in {"score", "new", "foryou"} else "asc")
     selected = tuple(sorted({kind.strip() for kind in kinds.split(",") if kind.strip()} - HIDDEN_KINDS))
     cats, kinds_on, likes = _ids(categories, CATEGORIES), _ids(types, TYPES), _ids(interests, CATEGORIES)
-    regs = _ids(region, REGIONS)
+    regs, brands = _ids(region, REGIONS), _ids(sponsors, SPONSORS)
     codes = tuple(sorted({c.strip().upper() for c in country.split(",") if c.strip().upper() in COUNTRIES}))
     key = ("hackathons", selected, format, q, days, sort, order, page, per_page, min_score, lat, lon, radius_km,
-           cats, kinds_on, likes if sort == "foryou" else (), regs, codes)
+           cats, kinds_on, likes if sort == "foryou" else (), regs, codes, brands)
     return _cached(key, lambda: _listing(selected, format, q, days, sort, order, page, per_page, min_score, lat, lon,
-                                         radius_km, cats, kinds_on, likes, regs, codes))
+                                         radius_km, cats, kinds_on, likes, regs, codes, brands))
 
 
 def _category_counts(kinds: tuple, days: str) -> dict:
@@ -278,9 +289,11 @@ def _category_counts(kinds: tuple, days: str) -> dict:
         where += " AND (start_at IS NULL OR start_at <= ?)"
         params.append(_iso(now + timedelta(days=int(days))))
     with db.connect() as conn:
-        rows = conn.fetchall(f"SELECT data, cats, flags, first_seen FROM events WHERE {where}", params)
-    counts, flag_counts = dict.fromkeys(CATEGORIES, 0), dict.fromkeys(TYPES, 0)
+        rows = conn.fetchall(f"SELECT data, cats, flags, first_seen, sponsors FROM events WHERE {where}", params)
+    counts, flag_counts, brand_counts = dict.fromkeys(CATEGORIES, 0), dict.fromkeys(TYPES, 0), dict.fromkeys(SPONSORS, 0)
     for row in rows:
+        for brand in _sponsors(row):
+            brand_counts[brand] += 1
         cats, found = _taxonomy(row, now)
         for name in cats:
             counts[name] += 1
@@ -289,7 +302,9 @@ def _category_counts(kinds: tuple, days: str) -> dict:
     order = list(CATEGORIES)
     ranked = sorted(CATEGORIES, key=lambda c: (-counts[c], order.index(c)))
     return {"categories": [{"id": c, "name": CATEGORIES[c], "count": counts[c]} for c in ranked],
-            "types": [{"id": t, "name": name, "count": flag_counts[t]} for t, name in TYPES.items()]}
+            "types": [{"id": t, "name": name, "count": flag_counts[t]} for t, name in TYPES.items()],
+            "sponsors": [{"id": b, "name": SPONSORS[b][0], "count": brand_counts[b]}
+                         for b in sorted(SPONSORS, key=lambda b: (-brand_counts[b], SPONSORS[b][0].casefold()))]}
 
 
 @app.get("/api/categories")
